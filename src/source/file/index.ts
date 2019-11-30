@@ -1,4 +1,3 @@
-import { SynorSourceEngine } from 'core/source'
 import { readdir as fsReadDir, readFile as fsReadFile } from 'fs'
 import { join as joinPath } from 'path'
 import { promisify } from 'util'
@@ -6,6 +5,7 @@ import { sortVersions } from 'utils/sort-versions'
 
 type MigrationInfo = import('../../core/migration-info').MigrationInfo
 type SourceEngineFactory = import('../../core/source').SourceEngineFactory
+type SynorSourceEngine = import('../../core/source').SynorSourceEngine
 
 type Type = MigrationInfo['type']
 type Version = MigrationInfo['version']

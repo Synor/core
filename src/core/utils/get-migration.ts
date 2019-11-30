@@ -1,4 +1,4 @@
-import { SynorMigration } from 'core/migration'
+import { SynorMigration } from '../migration'
 
 type SynorMigrationType = import('../migration').SynorMigrationType
 type SynorMigrationVersion = import('../migration').SynorMigrationVersion

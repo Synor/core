@@ -1,6 +1,5 @@
 {
   "name": "synor",
-  "private": true,
   "version": "0.0.0",
   "description": "Database Migration Library",
   "keywords": [
@@ -20,13 +19,14 @@
   "repository": "https://github.com/MunifTanjim/synor",
   "scripts": {
     "prebuild": "npm run clean",
-    "build": "npm-run-all build:core build:databases build:sources",
+    "build": "npm-run-all -p build:core build:databases build:sources",
     "build:core": "bili",
-    "build:databases": "npm-run-all -s build:database:*",
+    "build:databases": "npm-run-all -p build:database:*",
     "build:database:mysql": "SYNOR_DATABASE=mysql bili",
-    "build:sources": "npm-run-all -s build:source:*",
+    "build:sources": "npm-run-all -p build:source:*",
     "build:source:file": "SYNOR_SOURCE=file bili",
     "clean": "rimraf lib/*",
+    "prepare": "npm run build",
     "test": "jest"
   },
   "dependencies": {
