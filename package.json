@@ -2,7 +2,7 @@
   "name": "synor",
   "private": true,
   "version": "0.0.0",
-  "description": "",
+  "description": "Database Migration Library",
   "keywords": [
     "database",
     "migration"
@@ -20,16 +20,25 @@
   "repository": "https://github.com/MunifTanjim/synor",
   "scripts": {
     "prebuild": "npm run clean",
-    "build": "bili",
+    "build": "npm-run-all build:core build:databases build:sources",
+    "build:core": "bili",
+    "build:databases": "npm-run-all -s build:database:*",
+    "build:database:mysql": "SYNOR_DATABASE=mysql bili",
+    "build:sources": "npm-run-all -s build:source:*",
+    "build:source:file": "SYNOR_SOURCE=file bili",
     "clean": "rimraf lib/*",
     "test": "jest"
   },
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "^4.1.1",
+    "lodash.defaultsdeep": "^4.6.1",
+    "mysql": "^2.17.1"
   },
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/jest": "^24.0.19",
+    "@types/lodash.defaultsdeep": "^4.6.6",
+    "@types/mysql": "^2.15.8",
     "@typescript-eslint/eslint-plugin": "^2.5.0",
     "@typescript-eslint/parser": "^2.5.0",
     "bili": "^4.8.1",
@@ -44,11 +53,13 @@
     "husky": "^3.0.9",
     "jest": "^24.9.0",
     "lint-staged": "^9.4.2",
+    "npm-run-all": "^4.1.5",
     "prettier": "^1.18.2",
     "pretty-quick": "^2.0.0",
     "rimraf": "^3.0.0",
-    "rollup-plugin-typescript2": "^0.24.3",
+    "rollup-plugin-typescript2": "^0.25.2",
     "ts-jest": "^24.1.0",
-    "typescript": "^3.6.4"
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.2"
   }
 }

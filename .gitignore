@@ -19,3 +19,4 @@ node_modules
 
 # Others
 package-lock.json
+*.local
