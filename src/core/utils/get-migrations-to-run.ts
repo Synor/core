@@ -48,12 +48,14 @@ export async function getMigrationsToRun(
       const migration = await getMigration(source, nextVersion, type)
 
       if (!migration) {
+        nextVersion = null
         break
       }
 
       migrations.push(migration)
 
       if (migration.version === toVersion) {
+        nextVersion = null
         break
       }
 
@@ -68,10 +70,12 @@ export async function getMigrationsToRun(
       const migration = await getMigration(source, prevVersion, type)
 
       if (!migration) {
+        prevVersion = null
         break
       }
 
       if (migration.version === toVersion) {
+        prevVersion = null
         break
       }
 
