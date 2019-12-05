@@ -11,6 +11,7 @@ type ColumnName =
   | 'applied_at'
   | 'applied_by'
   | 'execution_time'
+  | 'dirty'
 
 type LockResult = 0 | 1 | null
 
@@ -39,10 +40,12 @@ type QueryStoreOptions = {
   advisoryLockId: string
 }
 
+type QueryValue = boolean | number | string | Date
+
 export async function runQuery<T = any>(
   connection: Connection,
   query: string,
-  values: Array<number | string | Date> = []
+  values: QueryValue[] = []
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     connection.query(query, values, (err, results) => {
@@ -72,7 +75,7 @@ export function getQueryStore(
 
   const QueryRunner = <RawResult = any, Result = RawResult>(
     query: string,
-    values: Array<number | string | Date>,
+    values: QueryValue[],
     formatter: (result: RawResult) => Result = v => (v as unknown) as Result
   ) => (): Promise<Result> => {
     return runQuery<RawResult>(
@@ -155,6 +158,13 @@ export function getQueryStore(
           ADD COLUMN ?? INT;
       `,
       [tableName, 'execution_time']
+    ),
+    dirty: QueryRunner(
+      `
+        ALTER TABLE ??
+          ADD COLUMN ?? BOOLEAN DEFAULT false;
+      `,
+      [tableName, 'dirty']
     )
   }
 
@@ -196,9 +206,12 @@ export function getQueryStore(
   }
 
   const getHistory: QueryStore['getHistory'] = (startId = 0) => {
-    return QueryRunner<MigrationRecord[]>(
+    return QueryRunner<
+      Array<Omit<MigrationRecord, 'dirty'> & { dirty: 0 | 1 }>,
+      Array<Required<MigrationRecord>>
+    >(
       `
-        SELECT ??, ??, ??, ??, ??, ?? AS ?, ?? AS ?, ?? AS ?
+        SELECT ??, ??, ??, ??, ??, ?? AS ?, ?? AS ?, ?? AS ?, ??
         FROM ??
         WHERE ?? >= ?;
       `,
@@ -214,10 +227,12 @@ export function getQueryStore(
         'appliedBy',
         'execution_time',
         'executionTime',
+        'dirty',
         tableName,
         'id',
         startId
-      ]
+      ],
+      rows => rows.map(row => ({ ...row, dirty: Boolean(row.dirty) }))
     )()
   }
 
@@ -228,14 +243,15 @@ export function getQueryStore(
     hash,
     appliedAt,
     appliedBy,
-    executionTime
+    executionTime,
+    dirty = false
   }) => {
     return QueryRunner(
       `
         INSERT INTO ?? (
-          ??, ??, ??, ??, ??, ??, ??
+          ??, ??, ??, ??, ??, ??, ??, ??
         ) VALUES (
-          ?, ?, ?, ?, ?, ?, ?
+          ?, ?, ?, ?, ?, ?, ?, ?
         )
       `,
       [
@@ -247,13 +263,15 @@ export function getQueryStore(
         'applied_at',
         'applied_by',
         'execution_time',
+        'dirty',
         version,
         type,
         title,
         hash,
         appliedAt,
         appliedBy,
-        executionTime
+        executionTime,
+        dirty
       ]
     )()
   }

@@ -121,24 +121,37 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     return history
   }
 
-  const run: MySQLDatabaseEngine['run'] = async (
-    migration: MigrationSource
-  ) => {
-    const { version, type, title, hash } = migration
+  const run: MySQLDatabaseEngine['run'] = async ({
+    version,
+    type,
+    title,
+    hash,
+    body
+  }: MigrationSource) => {
+    let dirty = false
 
     const startTime = performance.now()
-    await runQuery(connection, migration.body)
-    const endTime = performance.now()
 
-    await queryStore.addRecord({
-      version,
-      type,
-      title,
-      hash,
-      appliedAt: new Date(),
-      appliedBy: '',
-      executionTime: endTime - startTime
-    })
+    try {
+      await runQuery(connection, body)
+    } catch (err) {
+      dirty = true
+
+      throw err
+    } finally {
+      const endTime = performance.now()
+
+      await queryStore.addRecord({
+        version,
+        type,
+        title,
+        hash,
+        appliedAt: new Date(),
+        appliedBy: '',
+        executionTime: endTime - startTime,
+        dirty
+      })
+    }
   }
 
   return {

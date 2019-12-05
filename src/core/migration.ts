@@ -31,6 +31,7 @@ export type MigrationRecord = {
   appliedAt: Date
   appliedBy: string
   executionTime: number
+  dirty: boolean
 }
 
 export type MigrationRecordState = 'applied' | 'reverted'
