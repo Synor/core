@@ -1,4 +1,4 @@
-type SynorMigrationVersion = import('../core/migration').SynorMigrationVersion
+type MigrationVersion = import('../core/migration').MigrationVersion
 
 type Direction = 'ASC' | 'DESC'
 
@@ -14,8 +14,8 @@ const greaterThan: Record<Direction, -1 | 1> = {
 
 function compareVersion(
   direction: Direction = 'ASC',
-  versionA: SynorMigrationVersion,
-  versionB: SynorMigrationVersion
+  versionA: MigrationVersion,
+  versionB: MigrationVersion
 ): -1 | 0 | 1 {
   if (versionA < versionB) {
     return smallerThan[direction]
@@ -30,7 +30,7 @@ function compareVersion(
 
 export function sortVersions([
   ...versions
-]: SynorMigrationVersion[]): SynorMigrationVersion[] {
+]: MigrationVersion[]): MigrationVersion[] {
   const compareFn = compareVersion.bind(null, 'ASC')
   return versions.sort(compareFn)
 }

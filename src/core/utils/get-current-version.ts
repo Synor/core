@@ -1,10 +1,10 @@
 import { sortVersions } from 'utils/sort-versions'
 
-type SynorMigrationRecord = import('../migration').SynorMigrationRecord
+type MigrationRecord = import('../migration').MigrationRecord
 
-type Version = SynorMigrationRecord['version']
+type Version = MigrationRecord['version']
 
-export function getCurrentVersion(history: SynorMigrationRecord[]): string {
+export function getCurrentVersion(history: MigrationRecord[]): string {
   const appliedVersionMap = history.reduce<Record<Version, true>>(
     (applied, { version, type }): Record<Version, true> => {
       if (type === 'DO') {

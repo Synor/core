@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 
 type Connection = import('mysql').Connection
-type SynorMigrationRecord = import('../../core/migration').SynorMigrationRecord
+type MigrationRecord = import('../../core/migration').MigrationRecord
 
 type ColumnName =
   | 'version'
@@ -28,9 +28,9 @@ export type QueryStore = {
   getTableNames: () => Promise<string[]>
   dropTables: (tableNames: string[]) => Promise<void>
 
-  getHistory: (startId?: number) => Promise<SynorMigrationRecord[]>
+  getHistory: (startId?: number) => Promise<MigrationRecord[]>
 
-  addRecord: (record: Omit<SynorMigrationRecord, 'id'>) => Promise<void>
+  addRecord: (record: Omit<MigrationRecord, 'id'>) => Promise<void>
 }
 
 type QueryStoreOptions = {
@@ -196,7 +196,7 @@ export function getQueryStore(
   }
 
   const getHistory: QueryStore['getHistory'] = (startId = 0) => {
-    return QueryRunner<SynorMigrationRecord[]>(
+    return QueryRunner<MigrationRecord[]>(
       `
         SELECT ??, ??, ??, ??, ??, ?? AS ?, ?? AS ?, ?? AS ?
         FROM ??

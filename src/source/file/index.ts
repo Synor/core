@@ -3,9 +3,9 @@ import { join as joinPath } from 'path'
 import { promisify } from 'util'
 import { sortVersions } from 'utils/sort-versions'
 
-type MigrationInfo = import('../../core/migration-info').MigrationInfo
+type MigrationInfo = import('../../core/migration').MigrationInfo
+type SourceEngine = import('../../core/source').SourceEngine
 type SourceEngineFactory = import('../../core/source').SourceEngineFactory
-type SynorSourceEngine = import('../../core/source').SynorSourceEngine
 
 type Type = MigrationInfo['type']
 type Version = MigrationInfo['version']
@@ -13,7 +13,7 @@ type Version = MigrationInfo['version']
 const readFile = promisify(fsReadFile)
 const readDir = promisify(fsReadDir)
 
-export interface FileSourceEngine extends SynorSourceEngine {
+export interface FileSourceEngine extends SourceEngine {
   path: string
 }
 

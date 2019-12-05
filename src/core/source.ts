@@ -1,9 +1,10 @@
-type MigrationInfo = import('./migration-info').MigrationInfo
+type MigrationInfo = import('./migration').MigrationInfo
 type SynorConfig = import('..').SynorConfig
-type SynorMigrationVersion = import('./migration').SynorMigrationVersion
-type SynorMigrationType = import('./migration').SynorMigrationType
 
-export interface SynorSourceEngine {
+type MigrationType = MigrationInfo['type']
+type MigrationVersion = MigrationInfo['version']
+
+export interface SourceEngine {
   open(): Promise<void>
   close(): Promise<void>
   first(): Promise<string | null>
@@ -11,8 +12,8 @@ export interface SynorSourceEngine {
   next(version: string): Promise<string | null>
   last(): Promise<string | null>
   get(
-    version: SynorMigrationVersion,
-    type: SynorMigrationType
+    version: MigrationVersion,
+    type: MigrationType
   ): Promise<MigrationInfo | null>
   read(migrationInfo: MigrationInfo): Promise<Buffer>
 }
@@ -20,7 +21,7 @@ export interface SynorSourceEngine {
 export type SourceEngineFactory = (
   uri: SynorConfig['sourceUri'],
   helpers: Pick<SynorConfig, 'migrationInfoParser'>
-) => SynorSourceEngine
+) => SourceEngine
 
 type SynorSourceConfig = Pick<
   SynorConfig,
@@ -31,6 +32,6 @@ export function SynorSource({
   SourceEngine,
   sourceUri,
   migrationInfoParser
-}: SynorSourceConfig): SynorSourceEngine {
+}: SynorSourceConfig): SourceEngine {
   return SourceEngine(sourceUri, { migrationInfoParser })
 }

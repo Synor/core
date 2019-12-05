@@ -1,21 +1,21 @@
 type SynorConfig = import('..').SynorConfig
-type SynorMigration = import('./migration').SynorMigration
-type SynorMigrationRecord = import('./migration').SynorMigrationRecord
+type MigrationRecord = import('./migration').MigrationRecord
+type MigrationSource = import('./migration').MigrationSource
 
-export interface SynorDatabaseEngine {
+export interface DatabaseEngine {
   open(): Promise<void>
   close(): Promise<void>
   lock(): Promise<void>
   unlock(): Promise<void>
   drop(): Promise<void>
-  history(startId?: number): Promise<SynorMigrationRecord[]>
-  run(migration: SynorMigration): Promise<void>
+  history(startId?: number): Promise<MigrationRecord[]>
+  run(migration: MigrationSource): Promise<void>
 }
 
 export type DatabaseEngineFactory = (
   uri: SynorConfig['databaseUri'],
   helpers: Pick<SynorConfig, 'getAdvisoryLockId'>
-) => SynorDatabaseEngine
+) => DatabaseEngine
 
 type SynorDatabaseConfig = Pick<
   SynorConfig,
@@ -26,6 +26,6 @@ export function SynorDatabase({
   DatabaseEngine,
   databaseUri,
   getAdvisoryLockId
-}: SynorDatabaseConfig): SynorDatabaseEngine {
+}: SynorDatabaseConfig): DatabaseEngine {
   return DatabaseEngine(databaseUri, { getAdvisoryLockId })
 }

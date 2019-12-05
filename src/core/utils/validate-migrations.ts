@@ -1,15 +1,15 @@
 import { getExtendedHistory } from './get-extended-history'
 import { getMigration } from './get-migration'
 
-type SynorMigrationRecord = import('../migration').SynorMigrationRecord
-type SynorSourceEngine = import('../source').SynorSourceEngine
+type MigrationRecord = import('../migration').MigrationRecord
+type SourceEngine = import('../source').SourceEngine
 
-type Version = SynorMigrationRecord['version']
+type Version = MigrationRecord['version']
 
 export async function validateMigrations(
-  source: SynorSourceEngine,
+  source: SourceEngine,
   initialVersion: Version,
-  history: SynorMigrationRecord[]
+  history: MigrationRecord[]
 ): Promise<void> {
   const extendedHistory = getExtendedHistory(initialVersion, history)
 

@@ -1,18 +1,18 @@
 import { getMigration } from './get-migration'
 
-type SynorMigration = import('../migration').SynorMigration
-type SynorSourceEngine = import('../source').SynorSourceEngine
+type MigrationSource = import('../migration').MigrationSource
+type SourceEngine = import('../source').SourceEngine
 
-type Version = SynorMigration['version']
-type Type = SynorMigration['type']
+type Version = MigrationSource['version']
+type Type = MigrationSource['type']
 
 export async function getMigrationsToRun(
-  source: SynorSourceEngine,
+  source: SourceEngine,
   initialVersion: Version,
   fromVersion: Version,
   toVersion: Version
-): Promise<SynorMigration[]> {
-  const migrations: SynorMigration[] = []
+): Promise<MigrationSource[]> {
+  const migrations: MigrationSource[] = []
 
   let type: Type
 

@@ -1,12 +1,12 @@
 import defaultsDeep from 'lodash.defaultsdeep'
-import { getMigrationInfoParser } from './core/migration-info'
+import { getMigrationInfoParser } from './core/migration'
 import { SynorMigrator } from './core/migrator'
 import { getAdvisoryLockId } from './utils/get-advisory-lock-id'
 
-type SynorMigrationVersion = import('./core/migration').SynorMigrationVersion
 type DatabaseEngineFactory = import('./core/database').DatabaseEngineFactory
 type GetAdvisoryLockId = import('./utils/get-advisory-lock-id').GetAdvisoryLockId
-type MigrationInfoParser = import('./core/migration-info').MigrationInfoParser
+type MigrationInfoParser = import('./core/migration').MigrationInfoParser
+type MigrationVersion = import('./core/migration').MigrationVersion
 type SourceEngineFactory = import('./core/source').SourceEngineFactory
 
 type Synor = {
@@ -18,11 +18,10 @@ export type SynorConfig = {
   SourceEngine: SourceEngineFactory
   databaseUri: string
   DatabaseEngine: DatabaseEngineFactory
-  initialVersion: SynorMigrationVersion
+  initialVersion: MigrationVersion
   migrationInfoNotation: {
     do: string
     undo: string
-    extension: string | string[]
     seperator: string
   }
   migrationInfoParser: MigrationInfoParser
@@ -35,7 +34,6 @@ const defaultConfig: Partial<SynorConfig> = {
   migrationInfoNotation: {
     do: 'do',
     undo: 'undo',
-    extension: ['sql'],
     seperator: '.'
   },
   getAdvisoryLockId,

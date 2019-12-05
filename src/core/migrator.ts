@@ -6,8 +6,8 @@ import { validateMigrations } from 'core/utils/validate-migrations'
 import { getExtendedHistory } from './utils/get-extended-history'
 
 type SynorConfig = import('..').SynorConfig
-type SynorMigration = import('./migration').SynorMigration
-type SynorMigrationExtendedRecord = import('./migration').SynorMigrationExtendedRecord
+type MigrationSource = import('./migration').MigrationSource
+type ExtendedMigrationRecord = import('./migration').ExtendedMigrationRecord
 
 export type SynorMigrator = {
   open: () => Promise<void>
@@ -16,8 +16,8 @@ export type SynorMigrator = {
   version: () => Promise<string>
   validate: () => Promise<void>
   migrate: (targetVersion: string) => Promise<void>
-  history: () => Promise<SynorMigrationExtendedRecord[]>
-  pending: () => Promise<SynorMigration[]>
+  history: () => Promise<ExtendedMigrationRecord[]>
+  pending: () => Promise<MigrationSource[]>
 }
 
 export function SynorMigrator(config: SynorConfig): SynorMigrator {

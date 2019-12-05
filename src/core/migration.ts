@@ -1,14 +1,31 @@
 import { getHash } from 'core/utils/get-hash'
 
-type MigrationInfo = import('./migration-info').MigrationInfo
+type SynorConfig = import('../index').SynorConfig
 
-export type SynorMigrationType = 'DO' | 'UNDO'
-export type SynorMigrationVersion = string
+export type MigrationType = 'DO' | 'UNDO'
+export type MigrationVersion = string
 
-export interface SynorMigrationRecord {
+export type MigrationInfo = {
+  version: MigrationVersion
+  type: MigrationType
+  title: string
+  raw: string
+}
+
+export type MigrationInfoParser = (migration: string) => MigrationInfo
+
+export type MigrationSource = {
+  version: MigrationVersion
+  type: MigrationType
+  title: string
+  hash: string
+  body: string
+}
+
+export type MigrationRecord = {
   id: number
-  version: SynorMigrationVersion
-  type: SynorMigrationType
+  version: MigrationVersion
+  type: MigrationType
   title: string
   hash: string
   appliedAt: Date
@@ -16,26 +33,61 @@ export interface SynorMigrationRecord {
   executionTime: number
 }
 
-export type SynorMigrationRecordState = 'applied' | 'reverted'
+export type MigrationRecordState = 'applied' | 'reverted'
 
-export type SynorMigrationExtendedRecord = SynorMigrationRecord & {
-  state: SynorMigrationRecordState
+export type ExtendedMigrationRecord = MigrationRecord & {
+  state: MigrationRecordState
   revertedBy: number | null
 }
 
-export type SynorMigration = {
-  version: SynorMigrationVersion
-  type: SynorMigrationType
-  title: string
-  hash: string
-  body: string
+function getMigrationInfoRegex({
+  do: DO,
+  undo: UNDO,
+  seperator: SEPERATOR
+}: SynorConfig['migrationInfoNotation']): RegExp {
+  const version = `[0-9]+`
+  const type = [DO, UNDO].join('|')
+  const title = '.+'
+
+  return new RegExp(
+    `^(${version}).(${type})${SEPERATOR}(${title})(?:\\.(.+))?$`,
+    'i'
+  )
+}
+
+export const getMigrationInfoParser = (
+  config: SynorConfig
+): MigrationInfoParser => {
+  const migrationInfoRegex = getMigrationInfoRegex(config.migrationInfoNotation)
+
+  const typeMap: Record<string, MigrationType> = {
+    [config.migrationInfoNotation.do.toUpperCase()]: 'DO',
+    [config.migrationInfoNotation.undo.toUpperCase()]: 'UNDO'
+  }
+
+  return migration => {
+    const infoMatches = migration.match(migrationInfoRegex)
+
+    if (infoMatches === null) {
+      throw new Error('PARSE_ERROR')
+    }
+
+    const [raw, version, type, title] = infoMatches
+
+    return {
+      version,
+      type: typeMap[type.toUpperCase()],
+      title,
+      raw
+    }
+  }
 }
 
 export function SynorMigration(
   { version, type, title }: MigrationInfo,
   content: Buffer
-): SynorMigration {
-  const migration: SynorMigration = {
+): MigrationSource {
+  const migration: MigrationSource = {
     version,
     type,
     title,

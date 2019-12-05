@@ -1,12 +1,12 @@
 import { createConnection } from 'mysql'
 import { performance } from 'perf_hooks'
-import { SynorDatabaseEngine } from '../../core/database'
+import { DatabaseEngine } from '../../core/database'
 import { ensureMigrationTable } from './ensure-migration-table'
 import { getQueryStore, runQuery } from './queries'
 
 type ConnectionConfig = import('mysql').ConnectionConfig
 type DatabaseEngineFactory = import('../../core/database').DatabaseEngineFactory
-type SynorMigration = import('../../core/migration').SynorMigration
+type MigrationSource = import('../../core/migration').MigrationSource
 
 type MySQLDatabaseConfig = Pick<ConnectionConfig, 'ssl'> &
   Required<
@@ -20,7 +20,7 @@ type MySQLDatabaseEngineConfig = {
   migrationTableName: string
 }
 
-export interface MySQLDatabaseEngine extends SynorDatabaseEngine {
+export interface MySQLDatabaseEngine extends DatabaseEngine {
   migrationTableName: string
 }
 
@@ -121,7 +121,9 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     return history
   }
 
-  const run: MySQLDatabaseEngine['run'] = async (migration: SynorMigration) => {
+  const run: MySQLDatabaseEngine['run'] = async (
+    migration: MigrationSource
+  ) => {
     const { version, type, title, hash } = migration
 
     const startTime = performance.now()

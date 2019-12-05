@@ -1,19 +1,19 @@
-type SynorMigrationRecord = import('../migration').SynorMigrationRecord
-type SynorMigrationExtendedRecord = import('../migration').SynorMigrationExtendedRecord
+type MigrationRecord = import('../migration').MigrationRecord
+type ExtendedMigrationRecord = import('../migration').ExtendedMigrationRecord
 
-type RecordID = SynorMigrationRecord['id']
-type Version = SynorMigrationRecord['version']
+type ID = MigrationRecord['id']
+type Version = MigrationRecord['version']
 
 export function getExtendedHistory(
   initialVersion: string,
-  history: SynorMigrationRecord[]
-): SynorMigrationExtendedRecord[] {
+  history: MigrationRecord[]
+): ExtendedMigrationRecord[] {
   const extraInfoById: Record<
-    RecordID,
-    Omit<SynorMigrationExtendedRecord, keyof SynorMigrationRecord>
+    ID,
+    Omit<ExtendedMigrationRecord, keyof MigrationRecord>
   > = {}
 
-  const lastRecordIdByVersion: Record<Version, RecordID> = {}
+  const lastRecordIdByVersion: Record<Version, ID> = {}
 
   for (const { id, version } of history) {
     extraInfoById[id] = {
@@ -35,7 +35,7 @@ export function getExtendedHistory(
     lastRecordIdByVersion[version] = id
   }
 
-  const extendedHistory: SynorMigrationExtendedRecord[] = history.map(
+  const extendedHistory: ExtendedMigrationRecord[] = history.map(
     ({ id }, index) => ({ ...history[index], ...extraInfoById[id] })
   )
 
