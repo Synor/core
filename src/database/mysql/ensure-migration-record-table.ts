@@ -1,9 +1,11 @@
 import { performance } from 'perf_hooks'
 
+type MigrationVersion = import('../../core/migration').MigrationVersion
 type QueryStore = import('./queries').QueryStore
 
-export const ensureMigrationTable = async (
-  queryStore: QueryStore
+export const ensureMigrationRecordTable = async (
+  queryStore: QueryStore,
+  baseVersion: MigrationVersion
 ): Promise<void> => {
   const existingColumnNames = await queryStore.getMigrationTableColumnNames()
 
@@ -25,9 +27,9 @@ export const ensureMigrationTable = async (
 
   if (!migrationTableExists) {
     await queryStore.addRecord({
-      version: '0',
+      version: baseVersion,
       type: 'DO',
-      title: 'Initialize Synor Migration',
+      title: 'Base Migration',
       hash: '',
       appliedAt: new Date(),
       appliedBy: 'Synor',

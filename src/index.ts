@@ -18,7 +18,7 @@ export type SynorConfig = {
   SourceEngine: SourceEngineFactory
   databaseUri: string
   DatabaseEngine: DatabaseEngineFactory
-  initialVersion: MigrationVersion
+  baseVersion: MigrationVersion
   migrationInfoNotation: {
     do: string
     undo: string
@@ -30,7 +30,7 @@ export type SynorConfig = {
 }
 
 const defaultConfig: Partial<SynorConfig> = {
-  initialVersion: '0',
+  baseVersion: '0',
   migrationInfoNotation: {
     do: 'do',
     undo: 'undo',

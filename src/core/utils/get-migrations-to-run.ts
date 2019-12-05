@@ -8,7 +8,7 @@ type Type = MigrationSource['type']
 
 export async function getMigrationsToRun(
   source: SourceEngine,
-  initialVersion: Version,
+  baseVersion: Version,
   fromVersion: Version,
   toVersion: Version
 ): Promise<MigrationSource[]> {
@@ -24,14 +24,14 @@ export async function getMigrationsToRun(
     return migrations
   }
 
-  if (fromVersion !== initialVersion) {
+  if (fromVersion !== baseVersion) {
     const fromVersionExist = await source.get(fromVersion, type)
     if (!fromVersionExist) {
       throw new Error(`NOT_FOUND: Migration(${fromVersion}.${type})`)
     }
   }
 
-  if (toVersion !== initialVersion) {
+  if (toVersion !== baseVersion) {
     const toVersionExist = await source.get(toVersion, type)
     if (!toVersionExist) {
       throw new Error(`NOT_FOUND: Migration(${toVersion}.${type})`)
@@ -40,7 +40,7 @@ export async function getMigrationsToRun(
 
   if (type === 'DO') {
     let nextVersion =
-      fromVersion === initialVersion
+      fromVersion === baseVersion
         ? await source.first()
         : await source.next(fromVersion)
 
@@ -64,7 +64,7 @@ export async function getMigrationsToRun(
   }
 
   if (type === 'UNDO') {
-    let prevVersion = fromVersion === initialVersion ? null : fromVersion
+    let prevVersion = fromVersion === baseVersion ? null : fromVersion
 
     while (prevVersion) {
       const migration = await getMigration(source, prevVersion, type)

@@ -1,7 +1,7 @@
 import { createConnection } from 'mysql'
 import { performance } from 'perf_hooks'
 import { DatabaseEngine } from '../../core/database'
-import { ensureMigrationTable } from './ensure-migration-table'
+import { ensureMigrationRecordTable } from './ensure-migration-record-table'
 import { getQueryStore, runQuery } from './queries'
 
 type ConnectionConfig = import('mysql').ConnectionConfig
@@ -70,7 +70,7 @@ function getEngineConfig(uri: string): MySQLDatabaseEngineConfig {
 
 export const MySQLDatabaseEngine: DatabaseEngineFactory = (
   uri,
-  { getAdvisoryLockId }
+  { baseVersion, getAdvisoryLockId }
 ): MySQLDatabaseEngine => {
   const engineConfig = getEngineConfig(uri)
   const mysqlConfig = getMySQLConfig(uri)
@@ -90,7 +90,7 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
 
   const open: MySQLDatabaseEngine['open'] = async () => {
     await queryStore.openConnection()
-    await ensureMigrationTable(queryStore)
+    await ensureMigrationRecordTable(queryStore, baseVersion)
   }
 
   const close: MySQLDatabaseEngine['close'] = async () => {

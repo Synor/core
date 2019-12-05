@@ -2,6 +2,8 @@ type SynorConfig = import('..').SynorConfig
 type MigrationRecord = import('./migration').MigrationRecord
 type MigrationSource = import('./migration').MigrationSource
 
+type MigrationVersion = MigrationRecord['version']
+
 export interface DatabaseEngine {
   open(): Promise<void>
   close(): Promise<void>
@@ -14,18 +16,19 @@ export interface DatabaseEngine {
 
 export type DatabaseEngineFactory = (
   uri: SynorConfig['databaseUri'],
-  helpers: Pick<SynorConfig, 'getAdvisoryLockId'>
+  helpers: Pick<SynorConfig, 'baseVersion' | 'getAdvisoryLockId'>
 ) => DatabaseEngine
 
 type SynorDatabaseConfig = Pick<
   SynorConfig,
-  'DatabaseEngine' | 'databaseUri' | 'getAdvisoryLockId'
+  'DatabaseEngine' | 'databaseUri' | 'baseVersion' | 'getAdvisoryLockId'
 >
 
 export function SynorDatabase({
   DatabaseEngine,
   databaseUri,
+  baseVersion,
   getAdvisoryLockId
 }: SynorDatabaseConfig): DatabaseEngine {
-  return DatabaseEngine(databaseUri, { getAdvisoryLockId })
+  return DatabaseEngine(databaseUri, { baseVersion, getAdvisoryLockId })
 }

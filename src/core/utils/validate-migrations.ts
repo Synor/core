@@ -8,17 +8,17 @@ type Version = MigrationRecord['version']
 
 export async function validateMigrations(
   source: SourceEngine,
-  initialVersion: Version,
+  baseVersion: Version,
   history: MigrationRecord[]
 ): Promise<void> {
-  const extendedHistory = getExtendedHistory(initialVersion, history)
+  const extendedHistory = getExtendedHistory(baseVersion, history)
 
   const appliedRecords = extendedHistory.filter(
     ({ state, type }) => type === 'DO' && state === 'applied'
   )
 
   for (const record of appliedRecords) {
-    if (record.version === initialVersion) {
+    if (record.version === baseVersion) {
       continue
     }
 

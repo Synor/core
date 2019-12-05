@@ -78,7 +78,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     try {
       await lock()
       const history = await database.history(config.historyStartId)
-      await validateMigrations(source, config.initialVersion, history)
+      await validateMigrations(source, config.baseVersion, history)
     } finally {
       await unlock()
     }
@@ -88,12 +88,12 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     try {
       await lock()
       const history = await database.history(config.historyStartId)
-      await validateMigrations(source, config.initialVersion, history)
+      await validateMigrations(source, config.baseVersion, history)
       const currentVersion = getCurrentVersion(history)
 
       const migrations = await getMigrationsToRun(
         source,
-        config.initialVersion,
+        config.baseVersion,
         currentVersion,
         targetVersion
       )
@@ -110,7 +110,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     try {
       await lock()
       const history = await database.history(config.historyStartId)
-      const extendedHistory = getExtendedHistory(config.initialVersion, history)
+      const extendedHistory = getExtendedHistory(config.baseVersion, history)
       return extendedHistory
     } finally {
       await unlock()
@@ -130,7 +130,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
 
       const migrations = await getMigrationsToRun(
         source,
-        config.initialVersion,
+        config.baseVersion,
         currentVersion,
         targetVersion
       )

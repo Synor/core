@@ -5,7 +5,7 @@ type ID = MigrationRecord['id']
 type Version = MigrationRecord['version']
 
 export function getExtendedHistory(
-  initialVersion: string,
+  baseVersion: Version,
   history: MigrationRecord[]
 ): ExtendedMigrationRecord[] {
   const extraInfoById: Record<
@@ -21,7 +21,7 @@ export function getExtendedHistory(
       revertedBy: null
     }
 
-    if (version === initialVersion) {
+    if (version === baseVersion) {
       continue
     }
 
