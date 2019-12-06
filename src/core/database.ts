@@ -2,8 +2,6 @@ type SynorConfig = import('..').SynorConfig
 type MigrationRecord = import('./migration').MigrationRecord
 type MigrationSource = import('./migration').MigrationSource
 
-type MigrationVersion = MigrationRecord['version']
-
 export interface DatabaseEngine {
   open(): Promise<void>
   close(): Promise<void>
@@ -12,6 +10,7 @@ export interface DatabaseEngine {
   drop(): Promise<void>
   history(startId?: number): Promise<MigrationRecord[]>
   run(migration: MigrationSource): Promise<void>
+  repair(records: Array<Pick<MigrationRecord, 'id' | 'hash'>>): Promise<void>
 }
 
 export type DatabaseEngineFactory = (

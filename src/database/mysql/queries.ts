@@ -32,6 +32,11 @@ export type QueryStore = {
   getHistory: (startId?: number) => Promise<MigrationRecord[]>
 
   addRecord: (record: Omit<MigrationRecord, 'id'>) => Promise<void>
+  deleteDirtyRecords: () => Promise<void>
+  updateRecord: (
+    id: MigrationRecord['id'],
+    data: Pick<MigrationRecord, 'hash'>
+  ) => Promise<void>
 }
 
 type QueryStoreOptions = {
@@ -276,6 +281,23 @@ export function getQueryStore(
     )()
   }
 
+  const deleteDirtyRecords = QueryRunner(
+    `
+      DELETE FROM ?? WHERE ?? = ?;
+    `,
+    [tableName, 'dirty', true]
+  )
+
+  const updateRecord: QueryStore['updateRecord'] = async (id, { hash }) => {
+    return QueryRunner(
+      `
+        UPDATE ?? SET ?? = ?
+          WHERE ?? = ?;
+      `,
+      [tableName, 'hash', hash, 'id', id]
+    )()
+  }
+
   return {
     openConnection,
     closeConnection,
@@ -292,6 +314,8 @@ export function getQueryStore(
 
     getHistory,
 
-    addRecord
+    addRecord,
+    deleteDirtyRecords,
+    updateRecord
   }
 }

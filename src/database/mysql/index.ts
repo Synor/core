@@ -154,6 +154,14 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     }
   }
 
+  const repair: MySQLDatabaseEngine['repair'] = async records => {
+    await queryStore.deleteDirtyRecords()
+
+    for (const { id, hash } of records) {
+      await queryStore.updateRecord(id, { hash })
+    }
+  }
+
   return {
     migrationTableName: engineConfig.migrationTableName,
 
@@ -163,6 +171,7 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     unlock,
     drop,
     history,
-    run
+    run,
+    repair
   }
 }

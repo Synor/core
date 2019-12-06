@@ -4,6 +4,7 @@ import { getCurrentVersion } from 'core/utils/get-current-version'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
 import { validateMigrations } from 'core/utils/validate-migrations'
 import { getExtendedHistory } from './utils/get-extended-history'
+import { getRecordsToRepair } from './utils/get-records-to-repair'
 
 type SynorConfig = import('..').SynorConfig
 type MigrationSource = import('./migration').MigrationSource
@@ -18,6 +19,7 @@ export type SynorMigrator = {
   migrate: (targetVersion: string) => Promise<void>
   history: () => Promise<ExtendedMigrationRecord[]>
   pending: () => Promise<MigrationSource[]>
+  repair: () => Promise<void>
 }
 
 export function SynorMigrator(config: SynorConfig): SynorMigrator {
@@ -141,6 +143,21 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     }
   }
 
+  const repair: SynorMigrator['repair'] = async () => {
+    try {
+      await lock()
+      const history = await database.history(config.historyStartId)
+      const recordsToRepair = await getRecordsToRepair(
+        source,
+        config.baseVersion,
+        history
+      )
+      await database.repair(recordsToRepair)
+    } finally {
+      await unlock()
+    }
+  }
+
   return {
     open,
     close,
@@ -149,6 +166,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     validate,
     migrate,
     history,
-    pending
+    pending,
+    repair
   }
 }

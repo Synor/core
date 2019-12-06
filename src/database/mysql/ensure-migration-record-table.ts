@@ -33,7 +33,8 @@ export const ensureMigrationRecordTable = async (
       hash: '',
       appliedAt: new Date(),
       appliedBy: 'Synor',
-      executionTime: endTime - startTime
+      executionTime: endTime - startTime,
+      dirty: false
     })
   }
 }
