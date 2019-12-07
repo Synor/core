@@ -2,9 +2,11 @@ import defaultsDeep from 'lodash.defaultsdeep'
 import { getMigrationInfoParser } from './core/migration'
 import { SynorMigrator } from './core/migrator'
 import { getAdvisoryLockId } from './utils/get-advisory-lock-id'
+import { getGitUserInfo } from './utils/get-user-info'
 
 type DatabaseEngineFactory = import('./core/database').DatabaseEngineFactory
 type GetAdvisoryLockId = import('./utils/get-advisory-lock-id').GetAdvisoryLockId
+type GetUserInfo = import('./utils/get-user-info').GetUserInfo
 type MigrationInfoParser = import('./core/migration').MigrationInfoParser
 type MigrationVersion = import('./core/migration').MigrationVersion
 type SourceEngineFactory = import('./core/source').SourceEngineFactory
@@ -19,6 +21,7 @@ export type SynorConfig = {
   databaseUri: string
   DatabaseEngine: DatabaseEngineFactory
   baseVersion: MigrationVersion
+  recordStartId: number
   migrationInfoNotation: {
     do: string
     undo: string
@@ -26,18 +29,19 @@ export type SynorConfig = {
   }
   migrationInfoParser: MigrationInfoParser
   getAdvisoryLockId: GetAdvisoryLockId
-  recordStartId: number
+  getUserInfo: GetUserInfo
 }
 
 const defaultConfig: Partial<SynorConfig> = {
   baseVersion: '0',
+  recordStartId: 0,
   migrationInfoNotation: {
     do: 'do',
     undo: 'undo',
     seperator: '.'
   },
   getAdvisoryLockId,
-  recordStartId: 0
+  getUserInfo: getGitUserInfo
 }
 
 export function Synor(synorConfig: Partial<SynorConfig>): Synor {

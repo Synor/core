@@ -15,19 +15,31 @@ export interface DatabaseEngine {
 
 export type DatabaseEngineFactory = (
   uri: SynorConfig['databaseUri'],
-  helpers: Pick<SynorConfig, 'baseVersion' | 'getAdvisoryLockId'>
+  helpers: Pick<
+    SynorConfig,
+    'baseVersion' | 'getAdvisoryLockId' | 'getUserInfo'
+  >
 ) => DatabaseEngine
 
 type SynorDatabaseConfig = Pick<
   SynorConfig,
-  'DatabaseEngine' | 'databaseUri' | 'baseVersion' | 'getAdvisoryLockId'
+  | 'DatabaseEngine'
+  | 'databaseUri'
+  | 'baseVersion'
+  | 'getAdvisoryLockId'
+  | 'getUserInfo'
 >
 
 export function SynorDatabase({
   DatabaseEngine,
   databaseUri,
   baseVersion,
-  getAdvisoryLockId
+  getAdvisoryLockId,
+  getUserInfo
 }: SynorDatabaseConfig): DatabaseEngine {
-  return DatabaseEngine(databaseUri, { baseVersion, getAdvisoryLockId })
+  return DatabaseEngine(databaseUri, {
+    baseVersion,
+    getAdvisoryLockId,
+    getUserInfo
+  })
 }

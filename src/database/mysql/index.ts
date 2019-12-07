@@ -70,7 +70,7 @@ function getEngineConfig(uri: string): MySQLDatabaseEngineConfig {
 
 export const MySQLDatabaseEngine: DatabaseEngineFactory = (
   uri,
-  { baseVersion, getAdvisoryLockId }
+  { baseVersion, getAdvisoryLockId, getUserInfo }
 ): MySQLDatabaseEngine => {
   const engineConfig = getEngineConfig(uri)
   const mysqlConfig = getMySQLConfig(uri)
@@ -88,7 +88,10 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     advisoryLockId
   })
 
+  let appliedBy = ''
+
   const open: MySQLDatabaseEngine['open'] = async () => {
+    appliedBy = await getUserInfo()
     await queryStore.openConnection()
     await ensureMigrationRecordTable(queryStore, baseVersion)
   }
@@ -142,7 +145,7 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
         title,
         hash,
         appliedAt: new Date(),
-        appliedBy: '',
+        appliedBy,
         executionTime: endTime - startTime,
         dirty
       })
