@@ -3,18 +3,18 @@ import { getMigration } from './get-migration'
 type MigrationSource = import('../migration').MigrationSource
 type SourceEngine = import('../source').SourceEngine
 
-type Version = MigrationSource['version']
-type Type = MigrationSource['type']
+type MigrationVersion = MigrationSource['version']
+type MigrationType = MigrationSource['type']
 
 export async function getMigrationsToRun(
   source: SourceEngine,
-  baseVersion: Version,
-  fromVersion: Version,
-  toVersion: Version
+  baseVersion: MigrationVersion,
+  fromVersion: MigrationVersion,
+  toVersion: MigrationVersion
 ): Promise<MigrationSource[]> {
   const migrations: MigrationSource[] = []
 
-  let type: Type
+  let type: MigrationType
 
   if (fromVersion < toVersion) {
     type = 'DO'

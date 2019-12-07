@@ -3,22 +3,22 @@ import { SynorSource } from 'core/source'
 import { getCurrentVersion } from 'core/utils/get-current-version'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
 import { validateMigrations } from 'core/utils/validate-migrations'
-import { getExtendedHistory } from './utils/get-extended-history'
+import { getHistory } from './utils/get-history'
 import { getRecordsToRepair } from './utils/get-records-to-repair'
 
 type SynorConfig = import('..').SynorConfig
 type MigrationSource = import('./migration').MigrationSource
-type ExtendedMigrationRecord = import('./migration').ExtendedMigrationRecord
+type MigrationHistory = import('./migration').MigrationHistory
 
 export type SynorMigrator = {
   open: () => Promise<void>
   close: () => Promise<void>
   drop: () => Promise<void>
   version: () => Promise<string>
+  history: (recordStartId?: number) => Promise<MigrationHistory>
+  pending: () => Promise<MigrationSource[]>
   validate: () => Promise<void>
   migrate: (targetVersion: string) => Promise<void>
-  history: () => Promise<ExtendedMigrationRecord[]>
-  pending: () => Promise<MigrationSource[]>
   repair: () => Promise<void>
 }
 
@@ -66,9 +66,11 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
   }
 
   const version: SynorMigrator['version'] = async () => {
+    const { baseVersion, recordStartId } = config
+
     try {
       await lock()
-      const history = await database.history(config.historyStartId)
+      const history = await getHistory(database, baseVersion, recordStartId)
       const currentVersion = getCurrentVersion(history)
       return currentVersion
     } finally {
@@ -76,53 +78,26 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     }
   }
 
-  const validate: SynorMigrator['validate'] = async () => {
+  const history: SynorMigrator['history'] = async (
+    recordStartId = config.recordStartId
+  ) => {
+    const { baseVersion } = config
+
     try {
       await lock()
-      const history = await database.history(config.historyStartId)
-      await validateMigrations(source, config.baseVersion, history)
-    } finally {
-      await unlock()
-    }
-  }
-
-  const migrate: SynorMigrator['migrate'] = async (targetVersion: string) => {
-    try {
-      await lock()
-      const history = await database.history(config.historyStartId)
-      await validateMigrations(source, config.baseVersion, history)
-      const currentVersion = getCurrentVersion(history)
-
-      const migrations = await getMigrationsToRun(
-        source,
-        config.baseVersion,
-        currentVersion,
-        targetVersion
-      )
-
-      for (const migration of migrations) {
-        await database.run(migration)
-      }
-    } finally {
-      await unlock()
-    }
-  }
-
-  const history: SynorMigrator['history'] = async () => {
-    try {
-      await lock()
-      const history = await database.history(config.historyStartId)
-      const extendedHistory = getExtendedHistory(config.baseVersion, history)
-      return extendedHistory
+      const history = await getHistory(database, baseVersion, recordStartId)
+      return history
     } finally {
       await unlock()
     }
   }
 
   const pending: SynorMigrator['pending'] = async () => {
+    const { baseVersion, recordStartId } = config
+
     try {
       await lock()
-      const history = await database.history(config.historyStartId)
+      const history = await getHistory(database, baseVersion, recordStartId)
       const currentVersion = getCurrentVersion(history)
       const targetVersion = await source.last()
 
@@ -143,16 +118,51 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     }
   }
 
-  const repair: SynorMigrator['repair'] = async () => {
+  const validate: SynorMigrator['validate'] = async () => {
     try {
       await lock()
-      const history = await database.history(config.historyStartId)
-      const recordsToRepair = await getRecordsToRepair(
-        source,
+      const history = await getHistory(
+        database,
         config.baseVersion,
-        history
+        config.recordStartId
       )
-      await database.repair(recordsToRepair)
+      await validateMigrations(source, config.baseVersion, history)
+    } finally {
+      await unlock()
+    }
+  }
+
+  const migrate: SynorMigrator['migrate'] = async (targetVersion: string) => {
+    const { baseVersion, recordStartId } = config
+
+    try {
+      await lock()
+      const history = await getHistory(database, baseVersion, recordStartId)
+      await validateMigrations(source, baseVersion, history)
+      const currentVersion = getCurrentVersion(history)
+      const migrations = await getMigrationsToRun(
+        source,
+        baseVersion,
+        currentVersion,
+        targetVersion
+      )
+
+      for (const migration of migrations) {
+        await database.run(migration)
+      }
+    } finally {
+      await unlock()
+    }
+  }
+
+  const repair: SynorMigrator['repair'] = async () => {
+    const { baseVersion, recordStartId } = config
+
+    try {
+      await lock()
+      const history = await getHistory(database, baseVersion, recordStartId)
+      const records = await getRecordsToRepair(source, baseVersion, history)
+      await database.repair(records)
     } finally {
       await unlock()
     }
@@ -163,10 +173,10 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     close,
     drop,
     version,
-    validate,
-    migrate,
     history,
     pending,
+    validate,
+    migrate,
     repair
   }
 }

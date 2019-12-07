@@ -1,25 +1,28 @@
-import { getExtendedHistory } from './get-extended-history'
 import { getMigration } from './get-migration'
 
-type MigrationRecord = import('../migration').MigrationRecord
+type MigrationHistory = import('../migration').MigrationHistory
 type SourceEngine = import('../source').SourceEngine
 
-type Version = MigrationRecord['version']
+type MismatchedRecord = Pick<MigrationHistory[number], 'id' | 'hash'>
+
+type MigrationVersion = MigrationHistory[number]['version']
 
 export async function getRecordsToRepair(
   source: SourceEngine,
-  baseVersion: Version,
-  history: MigrationRecord[]
-): Promise<Array<Pick<MigrationRecord, 'id' | 'hash'>>> {
-  const extendedHistory = getExtendedHistory(baseVersion, history)
-
-  const appliedRecords = extendedHistory.filter(
+  baseVersion: MigrationVersion,
+  history: MigrationHistory
+): Promise<MismatchedRecord[]> {
+  const appliedRecords = history.filter(
     ({ state, dirty }) => state === 'applied' && !dirty
   )
 
-  const recordsToRepair: Array<Pick<MigrationRecord, 'id' | 'hash'>> = []
+  const mismatchedRecords: MismatchedRecord[] = []
 
   for (const { id, version, type, hash } of appliedRecords) {
+    if (version === baseVersion) {
+      continue
+    }
+
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
@@ -27,9 +30,9 @@ export async function getRecordsToRepair(
     }
 
     if (migration.hash !== hash) {
-      recordsToRepair.push({ id, hash: migration.hash })
+      mismatchedRecords.push({ id, hash: migration.hash })
     }
   }
 
-  return recordsToRepair
+  return mismatchedRecords
 }

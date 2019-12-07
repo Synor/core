@@ -8,9 +8,9 @@ export interface DatabaseEngine {
   lock(): Promise<void>
   unlock(): Promise<void>
   drop(): Promise<void>
-  history(startId?: number): Promise<MigrationRecord[]>
   run(migration: MigrationSource): Promise<void>
   repair(records: Array<Pick<MigrationRecord, 'id' | 'hash'>>): Promise<void>
+  records(startId?: number): Promise<MigrationRecord[]>
 }
 
 export type DatabaseEngineFactory = (

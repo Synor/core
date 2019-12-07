@@ -116,11 +116,6 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     await queryStore.dropTables(tableNames)
   }
 
-  const history: MySQLDatabaseEngine['history'] = async startId => {
-    const history = await queryStore.getHistory(startId)
-    return history
-  }
-
   const run: MySQLDatabaseEngine['run'] = async ({
     version,
     type,
@@ -162,6 +157,10 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     }
   }
 
+  const records: MySQLDatabaseEngine['records'] = async startId => {
+    return queryStore.getRecords(startId)
+  }
+
   return {
     migrationTableName: engineConfig.migrationTableName,
 
@@ -170,8 +169,8 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
     lock,
     unlock,
     drop,
-    history,
     run,
-    repair
+    repair,
+    records
   }
 }

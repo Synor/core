@@ -36,10 +36,12 @@ export type MigrationRecord = {
 
 export type MigrationRecordState = 'applied' | 'reverted'
 
-export type ExtendedMigrationRecord = MigrationRecord & {
-  state: MigrationRecordState
-  revertedBy: number | null
-}
+export type MigrationHistory = Array<
+  MigrationRecord & {
+    state: MigrationRecordState
+    revertedBy: number | null
+  }
+>
 
 function getMigrationInfoRegex({
   do: DO,

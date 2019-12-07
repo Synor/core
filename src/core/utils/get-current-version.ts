@@ -1,28 +1,11 @@
-import { sortVersions } from 'utils/sort-versions'
+type MigrationHistory = import('../migration').MigrationHistory
 
-type MigrationRecord = import('../migration').MigrationRecord
+export function getCurrentVersion(history: MigrationHistory): string {
+  const appliedMigrations = history
+    .filter(({ state, type }) => state === 'applied' && type === 'DO')
+    .sort((a, b) => a.id - b.id)
 
-type Version = MigrationRecord['version']
-
-export function getCurrentVersion(history: MigrationRecord[]): string {
-  const appliedVersionMap = history.reduce<Record<Version, true>>(
-    (applied, { version, type }): Record<Version, true> => {
-      if (type === 'DO') {
-        applied[version] = true
-      }
-
-      if (type === 'UNDO') {
-        delete applied[version]
-      }
-
-      return applied
-    },
-    {}
-  )
-
-  const appliedVersions = sortVersions(Object.keys(appliedVersionMap))
-
-  const currentVersion = appliedVersions[appliedVersions.length - 1]
+  const currentVersion = appliedMigrations[appliedMigrations.length - 1].version
 
   return currentVersion
 }

@@ -26,7 +26,7 @@ export type SynorConfig = {
   }
   migrationInfoParser: MigrationInfoParser
   getAdvisoryLockId: GetAdvisoryLockId
-  historyStartId: number
+  recordStartId: number
 }
 
 const defaultConfig: Partial<SynorConfig> = {
@@ -37,7 +37,7 @@ const defaultConfig: Partial<SynorConfig> = {
     seperator: '.'
   },
   getAdvisoryLockId,
-  historyStartId: 0
+  recordStartId: 0
 }
 
 export function Synor(synorConfig: Partial<SynorConfig>): Synor {

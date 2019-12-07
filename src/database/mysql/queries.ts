@@ -29,7 +29,7 @@ export type QueryStore = {
   getTableNames: () => Promise<string[]>
   dropTables: (tableNames: string[]) => Promise<void>
 
-  getHistory: (startId?: number) => Promise<MigrationRecord[]>
+  getRecords: (startId?: number) => Promise<MigrationRecord[]>
 
   addRecord: (record: Omit<MigrationRecord, 'id'>) => Promise<void>
   deleteDirtyRecords: () => Promise<void>
@@ -210,7 +210,7 @@ export function getQueryStore(
     )()
   }
 
-  const getHistory: QueryStore['getHistory'] = (startId = 0) => {
+  const getRecords: QueryStore['getRecords'] = (startId = 0) => {
     return QueryRunner<
       Array<Omit<MigrationRecord, 'dirty'> & { dirty: 0 | 1 }>,
       Array<Required<MigrationRecord>>
@@ -312,7 +312,7 @@ export function getQueryStore(
     getTableNames,
     dropTables,
 
-    getHistory,
+    getRecords,
 
     addRecord,
     deleteDirtyRecords,
