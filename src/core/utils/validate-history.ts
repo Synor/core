@@ -1,3 +1,4 @@
+import { SynorMigrationError, SynorValidationError } from 'core/error'
 import { getMigration } from './get-migration'
 
 type MigrationHistory = import('../migration').MigrationHistory
@@ -20,19 +21,17 @@ export async function validateHistory(
     }
 
     if (dirty) {
-      throw new Error(`DIRTY: Record(${id}) Migration(${version}.${type})`)
+      throw new SynorValidationError('DIRTY', { id, version, type })
     }
 
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
-      throw new Error(`NOT_FOUND: Migration(${version}.${type})`)
+      throw new SynorMigrationError('NOT_FOUND', { id, version, type })
     }
 
     if (migration.hash !== hash) {
-      throw new Error(
-        `HASH_MISMATCH: Record(${id}) Migration(${version}.${type})`
-      )
+      throw new SynorValidationError('HASH_MISMATCH', { id, version, type })
     }
   }
 }

@@ -89,8 +89,8 @@ export const FileSourceEngine: SourceEngineFactory = (
     return version || null
   }
 
-  const read: FileSourceEngine['read'] = async ({ raw }) => {
-    const migrationFilePath = joinPath(sourcePath, raw)
+  const read: FileSourceEngine['read'] = async ({ filename }) => {
+    const migrationFilePath = joinPath(sourcePath, filename)
     return readFile(migrationFilePath)
   }
 

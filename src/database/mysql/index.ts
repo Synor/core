@@ -1,3 +1,4 @@
+import { SynorDatabaseError } from 'core/error'
 import { createConnection } from 'mysql'
 import { performance } from 'perf_hooks'
 import { DatabaseEngine } from '../../core/database'
@@ -103,14 +104,14 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
   const lock: MySQLDatabaseEngine['lock'] = async () => {
     const lockResult = await queryStore.getLock()
     if ([0, null].includes(lockResult)) {
-      throw new Error(`Failed: GET_LOCK(${advisoryLockId})!`)
+      throw new SynorDatabaseError('LOCK_ERROR', { lockId: advisoryLockId })
     }
   }
 
   const unlock: MySQLDatabaseEngine['unlock'] = async () => {
     const lockResult = await queryStore.releaseLock()
     if ([0, null].includes(lockResult)) {
-      throw new Error(`Failed: RELEASE_LOCK(${advisoryLockId})!`)
+      throw new SynorDatabaseError('UNLOCK_ERROR', { lockId: advisoryLockId })
     }
   }
 

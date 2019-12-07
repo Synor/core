@@ -1,3 +1,4 @@
+import { SynorMigrationError } from 'core/error'
 import { getMigration } from './get-migration'
 
 type MigrationHistory = import('../migration').MigrationHistory
@@ -26,7 +27,7 @@ export async function getRecordsToRepair(
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
-      throw new Error(`NOT_FOUND: Migration(${version}.${type})`)
+      throw new SynorMigrationError('NOT_FOUND', { id, version, type })
     }
 
     if (migration.hash !== hash) {

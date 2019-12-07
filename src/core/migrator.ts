@@ -1,4 +1,5 @@
 import { SynorDatabase } from 'core/database'
+import { SynorError } from 'core/error'
 import { SynorSource } from 'core/source'
 import { getCurrentVersion } from 'core/utils/get-current-version'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
@@ -30,7 +31,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
 
   async function lock(): Promise<void> {
     if (locked) {
-      throw new Error('ALREADY_LOCKED')
+      throw new SynorError('Already Locked')
     }
 
     await database.lock()
@@ -40,7 +41,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
 
   async function unlock(): Promise<void> {
     if (!locked) {
-      throw new Error('NOT_LOCKED')
+      throw new SynorError('Not Locked')
     }
 
     await database.unlock()

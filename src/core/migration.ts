@@ -1,3 +1,4 @@
+import { SynorError } from 'core/error'
 import { getHash } from 'core/utils/get-hash'
 
 type SynorConfig = import('../index').SynorConfig
@@ -9,10 +10,10 @@ export type MigrationInfo = {
   version: MigrationVersion
   type: MigrationType
   title: string
-  raw: string
+  filename: string
 }
 
-export type MigrationInfoParser = (migration: string) => MigrationInfo
+export type MigrationInfoParser = (migrationFilename: string) => MigrationInfo
 
 export type MigrationSource = {
   version: MigrationVersion
@@ -58,30 +59,30 @@ function getMigrationInfoRegex({
   )
 }
 
-export const getMigrationInfoParser = (
-  config: SynorConfig
-): MigrationInfoParser => {
-  const migrationInfoRegex = getMigrationInfoRegex(config.migrationInfoNotation)
+export const getMigrationInfoParser = ({
+  migrationInfoNotation
+}: SynorConfig): MigrationInfoParser => {
+  const migrationInfoRegex = getMigrationInfoRegex(migrationInfoNotation)
 
   const typeMap: Record<string, MigrationType> = {
-    [config.migrationInfoNotation.do.toUpperCase()]: 'DO',
-    [config.migrationInfoNotation.undo.toUpperCase()]: 'UNDO'
+    [migrationInfoNotation.do.toUpperCase()]: 'DO',
+    [migrationInfoNotation.undo.toUpperCase()]: 'UNDO'
   }
 
-  return migration => {
-    const infoMatches = migration.match(migrationInfoRegex)
+  return migrationFilename => {
+    const infoMatches = migrationFilename.match(migrationInfoRegex)
 
     if (infoMatches === null) {
-      throw new Error('PARSE_ERROR')
+      throw new SynorError(`Invalid Filename: ${migrationFilename}`)
     }
 
-    const [raw, version, type, title] = infoMatches
+    const [filename, version, type, title] = infoMatches
 
     return {
       version,
       type: typeMap[type.toUpperCase()],
       title,
-      raw
+      filename
     }
   }
 }
