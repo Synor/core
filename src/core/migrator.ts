@@ -2,7 +2,7 @@ import { SynorDatabase } from 'core/database'
 import { SynorSource } from 'core/source'
 import { getCurrentVersion } from 'core/utils/get-current-version'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
-import { validateMigrations } from 'core/utils/validate-migrations'
+import { validateHistory } from 'core/utils/validate-history'
 import { getHistory } from './utils/get-history'
 import { getRecordsToRepair } from './utils/get-records-to-repair'
 
@@ -119,14 +119,12 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
   }
 
   const validate: SynorMigrator['validate'] = async () => {
+    const { baseVersion, recordStartId } = config
+
     try {
       await lock()
-      const history = await getHistory(
-        database,
-        config.baseVersion,
-        config.recordStartId
-      )
-      await validateMigrations(source, config.baseVersion, history)
+      const history = await getHistory(database, baseVersion, recordStartId)
+      await validateHistory(source, baseVersion, history)
     } finally {
       await unlock()
     }
@@ -138,7 +136,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     try {
       await lock()
       const history = await getHistory(database, baseVersion, recordStartId)
-      await validateMigrations(source, baseVersion, history)
+      await validateHistory(source, baseVersion, history)
       const currentVersion = getCurrentVersion(history)
       const migrations = await getMigrationsToRun(
         source,
