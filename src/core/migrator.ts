@@ -108,7 +108,7 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
 
       const migrations = await getMigrationsToRun(
         source,
-        config.baseVersion,
+        baseVersion,
         currentVersion,
         targetVersion
       )
@@ -137,7 +137,6 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
     try {
       await lock()
       const history = await getHistory(database, baseVersion, recordStartId)
-      await validateHistory(source, baseVersion, history)
       const currentVersion = getCurrentVersion(history)
       const migrations = await getMigrationsToRun(
         source,
