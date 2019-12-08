@@ -1,296 +1,265 @@
 import { SynorDatabase } from 'core/database'
-import {
-  SynorError,
-  SynorMigrationError,
-  SynorValidationError
-} from 'core/error'
+import { SynorError, SynorMigrationError } from 'core/error'
 import { SynorSource } from 'core/source'
 import { getCurrentVersion } from 'core/utils/get-current-version'
+import { getHistory } from 'core/utils/get-history'
 import { getMigration } from 'core/utils/get-migration'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
+import { getRecordsToRepair } from 'core/utils/get-records-to-repair'
 import { validateMigration } from 'core/utils/validate-migration'
-import { SynorEventEmitter } from './event-emitter'
-import { getHistory } from './utils/get-history'
-import { getRecordsToRepair } from './utils/get-records-to-repair'
+import { EventEmitter } from 'events'
 
-type SynorConfig = import('..').SynorConfig
-type MigrationSource = import('./migration').MigrationSource
+type DatabaseEngine = import('./database').DatabaseEngine
 type MigrationHistory = import('./migration').MigrationHistory
+type MigrationRecord = import('./migration').MigrationRecord
+type MigrationSource = import('./migration').MigrationSource
+type MigrationVersion = import('./migration').MigrationVersion
+type SourceEngine = import('./source').SourceEngine
+type SynorConfig = import('..').SynorConfig
 
-export type SynorMigrator = {
-  open: () => Promise<void>
-  close: () => Promise<void>
-  drop: () => Promise<void>
-  version: () => Promise<string>
-  history: (recordStartId?: number) => Promise<MigrationHistory>
-  pending: () => Promise<MigrationSource[]>
-  validate: () => Promise<void>
-  migrate: (targetVersion: string) => Promise<void>
-  repair: () => Promise<void>
-  on: ReturnType<typeof SynorEventEmitter>['on']
+type MigratorEventStore = {
+  'lock:start': []
+  'lock:end': []
+  'unlock:start': []
+  'unlock:end': []
+  'open:start': []
+  'open:end': []
+  'close:start': []
+  'close:end': []
+  'drop:start': []
+  'drop:end': []
+  'version:start': []
+  version: [MigrationVersion]
+  'version:end': []
+  'history:start': []
+  history: [MigrationHistory]
+  'history:end': []
+  'pending:start': []
+  pending: [MigrationSource[]]
+  'pending:end': []
+  'validate:start': []
+  'validate:run:start': [MigrationRecord]
+  'validate:error': [MigrationRecord, Error]
+  'validate:run:end': [MigrationRecord]
+  'validate:end': []
+  'migrate:start': []
+  'migrate:run:start': [MigrationSource]
+  'migrate:error': [MigrationSource, Error]
+  'migrate:run:end': [MigrationSource]
+  'migrate:end': []
+  'repair:start': []
+  'repair:end': []
+  error: [Error]
 }
 
-export function SynorMigrator(config: SynorConfig): SynorMigrator {
-  const { emit, on } = SynorEventEmitter()
+type EventStore = Record<string | symbol, any[]>
+type Listener<S extends EventStore, N extends keyof S> = (...data: S[N]) => void
+type UpdateListener<S extends EventStore, R extends any> = <N extends keyof S>(
+  event: N,
+  listener: Listener<S, N>
+) => R
 
-  const database = SynorDatabase(config)
-  const source = SynorSource(config)
+export interface SynorMigrator extends EventEmitter {
+  addListener: UpdateListener<MigratorEventStore, this>
+  on: UpdateListener<MigratorEventStore, this>
+  once: UpdateListener<MigratorEventStore, this>
+  prependListener: UpdateListener<MigratorEventStore, this>
+  prependOnceListener: UpdateListener<MigratorEventStore, this>
+  removeListener: UpdateListener<MigratorEventStore, this>
+  off: UpdateListener<MigratorEventStore, this>
+  removeAllListeners(event?: keyof MigratorEventStore): this
+  listeners<N extends keyof MigratorEventStore>(
+    event: N
+  ): Array<Listener<MigratorEventStore, N>>
+  rawListeners<N extends keyof MigratorEventStore>(
+    event: N
+  ): Array<Listener<MigratorEventStore, N>>
+  emit<N extends keyof MigratorEventStore>(
+    event: N,
+    ...data: MigratorEventStore[N]
+  ): boolean
+  listenerCount(type: keyof MigratorEventStore): number
+}
 
-  let locked = false
+export class SynorMigrator extends EventEmitter {
+  private readonly config: SynorConfig
+  private readonly database: DatabaseEngine
+  private readonly source: SourceEngine
 
-  async function lock(): Promise<void> {
-    emit('lock:start')
+  private locked: boolean
 
-    if (locked) {
+  constructor(config: SynorConfig) {
+    super()
+
+    this.setMaxListeners(1)
+
+    this.config = config
+    this.database = SynorDatabase(config)
+    this.source = SynorSource(config)
+
+    this.locked = false
+
+    this.drop = this.decorate('drop:start', this.drop, 'drop:end')
+    this.version = this.decorate('version:start', this.version, 'version:end')
+    this.history = this.decorate('history:start', this.history, 'history:end')
+    this.pending = this.decorate('pending:start', this.pending, 'pending:end')
+    this.validate = this.decorate(
+      'validate:start',
+      this.validate,
+      'validate:end'
+    )
+    this.migrate = this.decorate('migrate:start', this.migrate, 'migrate:end')
+    this.repair = this.decorate('repair:start', this.repair, 'repair:end')
+  }
+
+  private readonly decorate = <T extends (...params: any[]) => Promise<void>>(
+    startEvent: keyof MigratorEventStore,
+    handler: T,
+    endEvent: keyof MigratorEventStore
+  ) => async (...params: Parameters<T>) => {
+    try {
+      await this.lock()
+      this.emit(startEvent)
+      await handler(...params)
+    } catch (error) {
+      this.emit('error', error)
+    } finally {
+      this.emit(endEvent)
+      await this.unlock()
+    }
+  }
+
+  private readonly lock = async (): Promise<void> => {
+    this.emit('lock:start')
+    if (this.locked) {
       throw new SynorError('Already Locked')
     }
-
-    await database.lock()
-
-    locked = true
-
-    emit('lock:end')
+    await this.database.lock()
+    this.locked = true
+    this.emit('lock:end')
   }
 
-  async function unlock(): Promise<void> {
-    emit('unlock:start')
-
-    if (!locked) {
+  private readonly unlock = async (): Promise<void> => {
+    this.emit('unlock:start')
+    if (!this.locked) {
       throw new SynorError('Not Locked')
     }
-
-    await database.unlock()
-
-    locked = false
-
-    emit('unlock:end')
+    await this.database.unlock()
+    this.locked = false
+    this.emit('unlock:end')
   }
 
-  const open: SynorMigrator['open'] = async () => {
-    emit('open:start')
-
-    await Promise.all([database.open(), source.open()])
-
-    emit('open:end')
+  open = async (): Promise<void> => {
+    this.emit('open:start')
+    await Promise.all([this.database.open(), this.source.open()])
+    this.emit('open:end')
   }
 
-  const close: SynorMigrator['close'] = async () => {
-    emit('close:start')
-
-    await Promise.all([database.close(), source.close()])
-
-    emit('close:end')
+  close = async (): Promise<void> => {
+    this.emit('close:start')
+    await Promise.all([this.database.close(), this.source.close()])
+    this.emit('close:end')
   }
 
-  const drop: SynorMigrator['drop'] = async () => {
-    try {
-      await lock()
+  drop = async (): Promise<void> => {
+    await this.database.drop()
+  }
 
-      emit('drop:start')
+  version = async (): Promise<void> => {
+    const { baseVersion, recordStartId } = this.config
+    const history = await getHistory(this.database, baseVersion, recordStartId)
+    const currentVersion = getCurrentVersion(history)
+    this.emit('version', currentVersion)
+  }
 
-      await database.drop()
-    } finally {
-      emit('drop:end')
+  history = async (
+    recordStartId: number = this.config.recordStartId
+  ): Promise<void> => {
+    const { baseVersion } = this.config
+    const history = await getHistory(this.database, baseVersion, recordStartId)
+    this.emit('history', history)
+  }
 
-      await unlock()
+  pending = async (): Promise<void> => {
+    const { baseVersion, recordStartId } = this.config
+    const history = await getHistory(this.database, baseVersion, recordStartId)
+    const currentVersion = getCurrentVersion(history)
+    const targetVersion = await this.source.last()
+    if (!targetVersion || currentVersion >= targetVersion) {
+      this.emit('pending', [])
+      return
     }
+    const migrations = await getMigrationsToRun(
+      this.source,
+      baseVersion,
+      currentVersion,
+      targetVersion
+    )
+    this.emit('pending', migrations)
   }
 
-  const version: SynorMigrator['version'] = async () => {
-    const { baseVersion, recordStartId } = config
-
-    try {
-      await lock()
-
-      emit('version:start')
-
-      const history = await getHistory(database, baseVersion, recordStartId)
-      const currentVersion = getCurrentVersion(history)
-
-      emit('version', currentVersion)
-
-      return currentVersion
-    } finally {
-      emit('version:end')
-
-      await unlock()
-    }
-  }
-
-  const history: SynorMigrator['history'] = async (
-    recordStartId = config.recordStartId
-  ) => {
-    const { baseVersion } = config
-
-    try {
-      await lock()
-
-      emit('history:start')
-
-      const history = await getHistory(database, baseVersion, recordStartId)
-
-      emit('history', history)
-
-      return history
-    } finally {
-      emit('history:end')
-
-      await unlock()
-    }
-  }
-
-  const pending: SynorMigrator['pending'] = async () => {
-    const { baseVersion, recordStartId } = config
-
-    try {
-      await lock()
-
-      emit('pending:start')
-
-      const history = await getHistory(database, baseVersion, recordStartId)
-      const currentVersion = getCurrentVersion(history)
-      const targetVersion = await source.last()
-
-      if (!targetVersion || currentVersion >= targetVersion) {
-        emit('pending', [])
-
-        return []
+  validate = async (): Promise<void> => {
+    const { baseVersion, recordStartId } = this.config
+    const records = await getHistory(
+      this.database,
+      baseVersion,
+      recordStartId
+    ).then(history =>
+      history.filter(
+        ({ version, type, state }) =>
+          version !== baseVersion && type === 'DO' && state === 'applied'
+      )
+    )
+    for (const record of records) {
+      this.emit('validate:run:start', record)
+      const migration = await getMigration(
+        this.source,
+        record.version,
+        record.type
+      )
+      if (!migration) {
+        throw new SynorMigrationError('not_found', record)
       }
-
-      const migrations = await getMigrationsToRun(
-        source,
-        baseVersion,
-        currentVersion,
-        targetVersion
-      )
-
-      emit('pending', migrations)
-
-      return migrations
-    } finally {
-      emit('pending:end')
-
-      await unlock()
-    }
-  }
-
-  const validate: SynorMigrator['validate'] = async () => {
-    const { baseVersion, recordStartId } = config
-
-    try {
-      await lock()
-
-      emit('validate:start')
-
-      const records = await getHistory(
-        database,
-        baseVersion,
-        recordStartId
-      ).then(history =>
-        history.filter(
-          ({ version, type, state }) =>
-            version !== baseVersion && type === 'DO' && state === 'applied'
-        )
-      )
-
-      const validationErrors: SynorValidationError[] = []
-
-      for (const record of records) {
-        emit('validate:run:start', record)
-
-        const migration = await getMigration(
-          source,
-          record.version,
-          record.type
-        )
-
-        if (!migration) {
-          throw new SynorMigrationError('not_found', record)
+      try {
+        validateMigration(record, migration)
+      } catch (error) {
+        const hasListener = this.emit('validate:error', record, error)
+        if (!hasListener) {
+          throw error
         }
+      }
+      this.emit('validate:run:end', record)
+    }
+  }
 
-        try {
-          validateMigration(record, migration)
-        } catch (err) {
-          if (err instanceof SynorValidationError) {
-            emit('validate:error', err.meta, err.type)
-            validationErrors.push(err)
-          } else {
-            throw err
-          }
+  migrate = async (targetVersion: MigrationVersion): Promise<void> => {
+    const { baseVersion, recordStartId } = this.config
+    const history = await getHistory(this.database, baseVersion, recordStartId)
+    const currentVersion = getCurrentVersion(history)
+    const migrations = await getMigrationsToRun(
+      this.source,
+      baseVersion,
+      currentVersion,
+      targetVersion
+    )
+    for (const migration of migrations) {
+      this.emit('migrate:run:start', migration)
+      try {
+        await this.database.run(migration)
+      } catch (error) {
+        const hasListener = this.emit('migrate:error', migration, error)
+        if (!hasListener) {
+          throw error
         }
-
-        emit('validate:run:end', record)
       }
-
-      if (validationErrors.length) {
-        throw validationErrors
-      }
-    } finally {
-      emit('validate:end')
-
-      await unlock()
+      this.emit('migrate:run:end', migration)
     }
   }
 
-  const migrate: SynorMigrator['migrate'] = async (targetVersion: string) => {
-    const { baseVersion, recordStartId } = config
-
-    try {
-      await lock()
-
-      emit('migrate:start')
-
-      const history = await getHistory(database, baseVersion, recordStartId)
-      const currentVersion = getCurrentVersion(history)
-      const migrations = await getMigrationsToRun(
-        source,
-        baseVersion,
-        currentVersion,
-        targetVersion
-      )
-
-      for (const migration of migrations) {
-        emit('migrate:run:start', migration)
-
-        await database.run(migration)
-
-        emit('migrate:run:end', migration)
-      }
-    } finally {
-      emit('migrate:end')
-
-      await unlock()
-    }
-  }
-
-  const repair: SynorMigrator['repair'] = async () => {
-    const { baseVersion, recordStartId } = config
-
-    try {
-      await lock()
-
-      emit('repair:start')
-
-      const history = await getHistory(database, baseVersion, recordStartId)
-      const records = await getRecordsToRepair(source, baseVersion, history)
-      await database.repair(records)
-    } finally {
-      emit('repair:end')
-
-      await unlock()
-    }
-  }
-
-  return {
-    open,
-    close,
-    drop,
-    version,
-    history,
-    pending,
-    validate,
-    migrate,
-    repair,
-    on
+  repair = async (): Promise<void> => {
+    const { baseVersion, recordStartId } = this.config
+    const history = await getHistory(this.database, baseVersion, recordStartId)
+    const records = await getRecordsToRepair(this.source, baseVersion, history)
+    await this.database.repair(records)
   }
 }

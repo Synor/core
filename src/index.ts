@@ -51,7 +51,7 @@ export function Synor(synorConfig: Partial<SynorConfig>): Synor {
     config.migrationInfoParser = getMigrationInfoParser(config)
   }
 
-  const migrator = SynorMigrator(config)
+  const migrator = new SynorMigrator(config)
 
   return {
     migrator
