@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events'
 
+type MigrationRecord = import('./migration').MigrationRecord
 type MigrationSource = import('./migration').MigrationSource
 type MigrationVersion = import('./migration').MigrationVersion
 type MigrationHistory = import('./migration').MigrationHistory
+type SynorValidationError = import('./error').SynorValidationError
 
 type SynorMigratorEvent = {
   'lock:start': []
@@ -25,6 +27,9 @@ type SynorMigratorEvent = {
   pending: [MigrationSource[]]
   'pending:end': []
   'validate:start': []
+  'validate:run:start': [MigrationRecord]
+  'validate:error': [MigrationRecord, SynorValidationError['type']]
+  'validate:run:end': [MigrationRecord]
   'validate:end': []
   'migrate:start': []
   'migrate:run:start': [MigrationSource]

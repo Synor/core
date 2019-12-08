@@ -1,10 +1,15 @@
 import { SynorDatabase } from 'core/database'
-import { SynorError } from 'core/error'
-import { SynorEventEmitter } from 'core/event-emitter'
+import {
+  SynorError,
+  SynorMigrationError,
+  SynorValidationError
+} from 'core/error'
 import { SynorSource } from 'core/source'
 import { getCurrentVersion } from 'core/utils/get-current-version'
+import { getMigration } from 'core/utils/get-migration'
 import { getMigrationsToRun } from 'core/utils/get-migrations-to-run'
-import { validateHistory } from 'core/utils/validate-history'
+import { validateMigration } from 'core/utils/validate-migration'
+import { SynorEventEmitter } from './event-emitter'
 import { getHistory } from './utils/get-history'
 import { getRecordsToRepair } from './utils/get-records-to-repair'
 
@@ -177,8 +182,49 @@ export function SynorMigrator(config: SynorConfig): SynorMigrator {
 
       emit('validate:start')
 
-      const history = await getHistory(database, baseVersion, recordStartId)
-      await validateHistory(source, baseVersion, history)
+      const records = await getHistory(
+        database,
+        baseVersion,
+        recordStartId
+      ).then(history =>
+        history.filter(
+          ({ version, type, state }) =>
+            version !== baseVersion && type === 'DO' && state === 'applied'
+        )
+      )
+
+      const validationErrors: SynorValidationError[] = []
+
+      for (const record of records) {
+        emit('validate:run:start', record)
+
+        const migration = await getMigration(
+          source,
+          record.version,
+          record.type
+        )
+
+        if (!migration) {
+          throw new SynorMigrationError('not_found', record)
+        }
+
+        try {
+          validateMigration(record, migration)
+        } catch (err) {
+          if (err instanceof SynorValidationError) {
+            emit('validate:error', err.meta, err.type)
+            validationErrors.push(err)
+          } else {
+            throw err
+          }
+        }
+
+        emit('validate:run:end', record)
+      }
+
+      if (validationErrors.length) {
+        throw validationErrors
+      }
     } finally {
       emit('validate:end')
 
