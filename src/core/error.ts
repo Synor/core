@@ -10,16 +10,16 @@ type SynorErrorType =
   | SynorDatabaseErrorType
   | SynorMigrationErrorType
   | SynorValidationErrorType
-  | 'EXCEPTION'
+  | 'exception'
 
 export class SynorError extends Error {
   type: SynorErrorType
-  meta: any
+  data: any
 
   constructor(
     message: string,
-    meta: any = {},
-    type: SynorErrorType = 'EXCEPTION'
+    data: any = {},
+    type: SynorErrorType = 'exception'
   ) {
     super(message)
 
@@ -27,7 +27,7 @@ export class SynorError extends Error {
 
     this.name = this.constructor.name
     this.type = type
-    this.meta = meta
+    this.data = data
   }
 }
 
@@ -37,32 +37,32 @@ type SynorDatabaseErrorMeta = {
 
 export class SynorDatabaseError extends SynorError {
   type!: SynorDatabaseErrorType
-  meta!: SynorDatabaseErrorMeta
+  data!: SynorDatabaseErrorMeta
 
   constructor(
     type: 'lock_error' | 'unlock_error',
-    meta: Required<Pick<SynorDatabaseErrorMeta, 'lockId'>>
+    data: Required<Pick<SynorDatabaseErrorMeta, 'lockId'>>
   )
 
-  constructor(type: SynorDatabaseErrorType, meta: SynorDatabaseErrorMeta) {
-    super('Database Error', meta, type)
+  constructor(type: SynorDatabaseErrorType, data: SynorDatabaseErrorMeta) {
+    super('SynorDatabaseError', data, type)
   }
 }
 
 export class SynorMigrationError extends SynorError {
   type!: SynorMigrationErrorType
-  meta!: Partial<MigrationRecord>
+  data!: Partial<MigrationRecord>
 
-  constructor(type: SynorMigrationErrorType, meta: Partial<MigrationRecord>) {
-    super('Migration Error', meta, type)
+  constructor(type: SynorMigrationErrorType, data: Partial<MigrationRecord>) {
+    super('SynorMigrationError', data, type)
   }
 }
 
 export class SynorValidationError extends SynorError {
   type!: SynorValidationErrorType
-  meta!: MigrationRecord
+  data!: MigrationRecord
 
-  constructor(type: SynorValidationErrorType, meta: MigrationRecord) {
-    super('Validation Error', meta, type)
+  constructor(type: SynorValidationErrorType, data: MigrationRecord) {
+    super('SynorValidationError', data, type)
   }
 }
