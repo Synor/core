@@ -129,6 +129,17 @@ export class SynorMigrator extends EventEmitter {
     }
   }
 
+  private readonly emitOrThrow = (
+    event: 'migrate:error' | 'validate:error',
+    data: any,
+    error: Error
+  ): void => {
+    const hasListener = this.emit(event, data, error)
+    if (!hasListener) {
+      throw error
+    }
+  }
+
   private readonly lock = async (): Promise<void> => {
     this.emit('lock:start')
     if (this.locked) {
@@ -223,10 +234,7 @@ export class SynorMigrator extends EventEmitter {
       try {
         validateMigration(record, migration)
       } catch (error) {
-        const hasListener = this.emit('validate:error', record, error)
-        if (!hasListener) {
-          throw error
-        }
+        this.emitOrThrow('validate:error', record, error)
       }
       this.emit('validate:run:end', record)
     }
@@ -247,10 +255,7 @@ export class SynorMigrator extends EventEmitter {
       try {
         await this.database.run(migration)
       } catch (error) {
-        const hasListener = this.emit('migrate:error', migration, error)
-        if (!hasListener) {
-          throw error
-        }
+        this.emitOrThrow('migrate:error', migration, error)
       }
       this.emit('migrate:run:end', migration)
     }
