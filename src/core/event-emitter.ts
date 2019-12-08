@@ -42,7 +42,7 @@ type SynorEventEmitterEmit = <EventName extends keyof SynorMigratorEvent>(
 type SynorEventEmitterOn = <EventName extends keyof SynorMigratorEvent>(
   event: EventName,
   listener: (...data: SynorMigratorEvent[EventName]) => void
-) => void
+) => { on: SynorEventEmitterOn }
 
 type SynorEventEmitter = {
   emit: SynorEventEmitterEmit
@@ -59,6 +59,8 @@ export function SynorEventEmitter(): SynorEventEmitter {
   const on: SynorEventEmitter['on'] = (event, listener) => {
     // @ts-ignore
     eventEmitter.on(event, listener)
+
+    return { on }
   }
 
   return {
