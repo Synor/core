@@ -28,14 +28,14 @@ export async function getMigrationsToRun(
   if (fromVersion !== baseVersion) {
     const fromVersionExist = await source.get(fromVersion, type)
     if (!fromVersionExist) {
-      throw new SynorMigrationError('NOT_FOUND', { version: fromVersion, type })
+      throw new SynorMigrationError('not_found', { version: fromVersion, type })
     }
   }
 
   if (toVersion !== baseVersion) {
     const toVersionExist = await source.get(toVersion, type)
     if (!toVersionExist) {
-      throw new SynorMigrationError('NOT_FOUND', { version: toVersion, type })
+      throw new SynorMigrationError('not_found', { version: toVersion, type })
     }
   }
 

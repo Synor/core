@@ -15,23 +15,25 @@ export async function validateHistory(
     .filter(({ state, type }) => state === 'applied' && type === 'DO')
     .reverse()
 
-  for (const { id, version, type, hash, dirty } of records) {
+  for (const record of records) {
+    const { version, type, hash, dirty } = record
+
     if (version === baseVersion) {
       continue
     }
 
     if (dirty) {
-      throw new SynorValidationError('DIRTY', { id, version, type })
+      throw new SynorValidationError('dirty', record)
     }
 
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
-      throw new SynorMigrationError('NOT_FOUND', { id, version, type })
+      throw new SynorMigrationError('not_found', record)
     }
 
     if (migration.hash !== hash) {
-      throw new SynorValidationError('HASH_MISMATCH', { id, version, type })
+      throw new SynorValidationError('hash_mismatch', record)
     }
   }
 }

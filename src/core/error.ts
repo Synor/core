@@ -2,9 +2,9 @@
 
 type MigrationRecord = import('./migration').MigrationRecord
 
-type SynorDatabaseErrorType = 'LOCK_ERROR' | 'UNLOCK_ERROR'
-type SynorMigrationErrorType = 'NOT_FOUND'
-type SynorValidationErrorType = 'DIRTY' | 'HASH_MISMATCH'
+type SynorDatabaseErrorType = 'lock_error' | 'unlock_error'
+type SynorMigrationErrorType = 'not_found'
+type SynorValidationErrorType = 'dirty' | 'hash_mismatch'
 
 type SynorErrorType =
   | SynorDatabaseErrorType
@@ -40,7 +40,7 @@ export class SynorDatabaseError extends SynorError {
   meta!: SynorDatabaseErrorMeta
 
   constructor(
-    type: 'LOCK_ERROR' | 'UNLOCK_ERROR',
+    type: 'lock_error' | 'unlock_error',
     meta: Required<Pick<SynorDatabaseErrorMeta, 'lockId'>>
   )
 
@@ -60,9 +60,9 @@ export class SynorMigrationError extends SynorError {
 
 export class SynorValidationError extends SynorError {
   type!: SynorValidationErrorType
-  meta!: Partial<MigrationRecord>
+  meta!: MigrationRecord
 
-  constructor(type: SynorValidationErrorType, meta: Partial<MigrationRecord>) {
+  constructor(type: SynorValidationErrorType, meta: MigrationRecord) {
     super('Validation Error', meta, type)
   }
 }

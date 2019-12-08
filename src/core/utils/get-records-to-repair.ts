@@ -27,7 +27,7 @@ export async function getRecordsToRepair(
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
-      throw new SynorMigrationError('NOT_FOUND', { id, version, type })
+      throw new SynorMigrationError('not_found', { id, version, type })
     }
 
     if (migration.hash !== hash) {

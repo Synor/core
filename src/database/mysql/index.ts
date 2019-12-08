@@ -104,14 +104,14 @@ export const MySQLDatabaseEngine: DatabaseEngineFactory = (
   const lock: MySQLDatabaseEngine['lock'] = async () => {
     const lockResult = await queryStore.getLock()
     if ([0, null].includes(lockResult)) {
-      throw new SynorDatabaseError('LOCK_ERROR', { lockId: advisoryLockId })
+      throw new SynorDatabaseError('lock_error', { lockId: advisoryLockId })
     }
   }
 
   const unlock: MySQLDatabaseEngine['unlock'] = async () => {
     const lockResult = await queryStore.releaseLock()
     if ([0, null].includes(lockResult)) {
-      throw new SynorDatabaseError('UNLOCK_ERROR', { lockId: advisoryLockId })
+      throw new SynorDatabaseError('unlock_error', { lockId: advisoryLockId })
     }
   }
 
