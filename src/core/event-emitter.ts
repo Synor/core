@@ -58,7 +58,7 @@ export function SynorEventEmitter(): SynorEventEmitter {
   const eventEmitter = new EventEmitter()
 
   const emit: SynorEventEmitter['emit'] = (event, ...data) => {
-    eventEmitter.emit(event, data)
+    eventEmitter.emit(event, ...data)
   }
 
   const on: SynorEventEmitter['on'] = (event, listener) => {
