@@ -1,3 +1,4 @@
+import { SynorError } from './error'
 import { getHash } from './utils/get-hash'
 
 type SynorConfig = import('.').SynorConfig
@@ -70,7 +71,7 @@ export const getMigrationInfoParser = ({
     const infoMatches = migrationFilename.match(migrationInfoRegex)
 
     if (infoMatches === null) {
-      throw new Error(`Invalid Filename: ${migrationFilename}`)
+      throw new SynorError(`Invalid Filename: ${migrationFilename}`)
     }
 
     const [filename, version, type, title] = infoMatches
