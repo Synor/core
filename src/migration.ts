@@ -50,11 +50,9 @@ function getMigrationInfoRegex({
 }: SynorConfig['migrationInfoNotation']): RegExp {
   const version = `[0-9]+`
   const type = [DO, UNDO].join('|')
-  const title = '.+'
+  const title = '[\\S ]+'
 
-  return new RegExp(
-    `^(${version}).(${type})${SEPERATOR}(${title})(?:\\.(.+))?$`
-  )
+  return new RegExp(`^(${version}).(${type})${SEPERATOR}(${title})\\.(.+)$`)
 }
 
 export const getMigrationInfoParser = ({
