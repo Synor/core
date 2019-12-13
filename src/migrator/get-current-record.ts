@@ -1,11 +1,13 @@
 type MigrationHistory = import('../migration').MigrationHistory
 
-export function getCurrentVersion(history: MigrationHistory): string {
+export function getCurrentRecord(
+  history: MigrationHistory
+): MigrationHistory[number] {
   const appliedMigrations = history
     .filter(({ state, type }) => state === 'applied' && type === 'do')
     .sort((a, b) => a.id - b.id)
 
-  const currentVersion = appliedMigrations[appliedMigrations.length - 1].version
+  const currentRecord = appliedMigrations[appliedMigrations.length - 1]
 
-  return currentVersion
+  return currentRecord
 }

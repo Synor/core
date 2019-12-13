@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import { SynorDatabase } from '../database'
 import { SynorError, SynorMigrationError } from '../error'
 import { SynorSource } from '../source'
-import { getCurrentVersion } from './get-current-version'
+import { getCurrentRecord } from './get-current-record'
 import { getHistory } from './get-history'
 import { getMigration } from './get-migration'
 import { getMigrationsToRun } from './get-migrations-to-run'
@@ -27,9 +27,9 @@ type MigratorEventStore = {
   'close:end': []
   'drop:start': []
   'drop:end': []
-  'version:start': []
-  version: [string]
-  'version:end': []
+  'current:start': []
+  current: [MigrationHistory[number]]
+  'current:end': []
   'history:start': []
   history: [MigrationHistory]
   'history:end': []
@@ -99,7 +99,7 @@ export class SynorMigrator extends EventEmitter {
     this.locked = false
 
     this.drop = this.decorate('drop:start', this.drop, 'drop:end')
-    this.version = this.decorate('version:start', this.version, 'version:end')
+    this.current = this.decorate('current:start', this.current, 'current:end')
     this.history = this.decorate('history:start', this.history, 'history:end')
     this.pending = this.decorate('pending:start', this.pending, 'pending:end')
     this.validate = this.decorate(
@@ -175,11 +175,11 @@ export class SynorMigrator extends EventEmitter {
     await this.database.drop()
   }
 
-  version = async (): Promise<void> => {
+  current = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
-    const currentVersion = getCurrentVersion(history)
-    this.emit('version', currentVersion)
+    const currentRecord = getCurrentRecord(history)
+    this.emit('current', currentRecord)
   }
 
   history = async (
@@ -193,7 +193,7 @@ export class SynorMigrator extends EventEmitter {
   pending = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
-    const currentVersion = getCurrentVersion(history)
+    const currentVersion = getCurrentRecord(history).version
     const targetVersion = await this.source.last()
     if (!targetVersion || currentVersion >= targetVersion) {
       this.emit('pending', [])
@@ -242,7 +242,7 @@ export class SynorMigrator extends EventEmitter {
   migrate = async (targetVersion: string): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
-    const currentVersion = getCurrentVersion(history)
+    const currentVersion = getCurrentRecord(history).version
     const migrations = await getMigrationsToRun(
       this.source,
       baseVersion,
