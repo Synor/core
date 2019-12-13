@@ -120,10 +120,10 @@ export class SynorMigrator extends EventEmitter {
       await this.lock()
       this.emit(startEvent)
       await handler(...params)
+      this.emit(endEvent)
     } catch (error) {
       this.emit('error', error)
     } finally {
-      this.emit(endEvent)
       await this.unlock()
     }
   }
