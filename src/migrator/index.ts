@@ -232,10 +232,10 @@ export class SynorMigrator extends EventEmitter {
       }
       try {
         validateMigration(record, migration)
+        this.emit('validate:run:end', record)
       } catch (error) {
         this.emitOrThrow('validate:error', record, error)
       }
-      this.emit('validate:run:end', record)
     }
   }
 
@@ -253,10 +253,10 @@ export class SynorMigrator extends EventEmitter {
       this.emit('migrate:run:start', migration)
       try {
         await this.database.run(migration)
+        this.emit('migrate:run:end', migration)
       } catch (error) {
         this.emitOrThrow('migrate:error', migration, error)
       }
-      this.emit('migrate:run:end', migration)
     }
   }
 
