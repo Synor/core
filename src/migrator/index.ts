@@ -166,6 +166,10 @@ export class SynorMigrator extends EventEmitter {
   }
 
   close = async (): Promise<void> => {
+    if (this.locked) {
+      await this.unlock()
+    }
+
     this.emit('close:start')
     await Promise.all([this.database.close(), this.source.close()])
     this.emit('close:end')
