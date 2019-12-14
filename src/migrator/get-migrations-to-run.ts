@@ -63,24 +63,24 @@ export async function getMigrationsToRun(
   }
 
   if (type === 'undo') {
-    let prevVersion = fromVersion === baseVersion ? null : fromVersion
+    let currVersion = fromVersion === baseVersion ? null : fromVersion
 
-    while (prevVersion) {
-      const migration = await getMigration(source, prevVersion, type)
+    while (currVersion) {
+      const migration = await getMigration(source, currVersion, type)
 
       if (!migration) {
-        prevVersion = null
+        currVersion = null
         break
       }
 
       if (migration.version === toVersion) {
-        prevVersion = null
+        currVersion = null
         break
       }
 
       migrations.push(migration)
 
-      prevVersion = await source.prev(migration.version)
+      currVersion = await source.prev(migration.version)
     }
   }
 
