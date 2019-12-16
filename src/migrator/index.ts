@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { SynorDatabase } from '../database'
-import { SynorError, SynorMigrationError } from '../error'
+import { SynorError, SynorMigrationError, toSynorError } from '../error'
 import { SynorSource } from '../source'
 import { getCurrentRecord } from './get-current-record'
 import { getHistory } from './get-history'
@@ -38,12 +38,12 @@ type MigratorEventStore = {
   'pending:end': []
   'validate:start': []
   'validate:run:start': [MigrationRecord]
-  'validate:error': [MigrationRecord, Error]
+  'validate:error': [Error, MigrationRecord]
   'validate:run:end': [MigrationRecord]
   'validate:end': []
   'migrate:start': []
   'migrate:run:start': [MigrationSource]
-  'migrate:error': [MigrationSource, Error]
+  'migrate:error': [Error, MigrationSource]
   'migrate:run:end': [MigrationSource]
   'migrate:end': []
   'repair:start': []
@@ -98,6 +98,11 @@ export class SynorMigrator extends EventEmitter {
 
     this.locked = false
 
+    this.lock = this.decorate('lock:start', this.lock, 'lock:end', true)
+    this.unlock = this.decorate('unlock:start', this.unlock, 'unlock:end', true)
+    this.open = this.decorate('open:start', this.open, 'open:end', true)
+    this.close = this.decorate('close:start', this.close, 'close:end', true)
+
     this.drop = this.decorate('drop:start', this.drop, 'drop:end')
     this.current = this.decorate('current:start', this.current, 'current:end')
     this.history = this.decorate('history:start', this.history, 'history:end')
@@ -111,68 +116,66 @@ export class SynorMigrator extends EventEmitter {
     this.repair = this.decorate('repair:start', this.repair, 'repair:end')
   }
 
+  private readonly emitOrThrow = <
+    N extends 'error' | 'migrate:error' | 'validate:error'
+  >(
+    event: N,
+    ...data: MigratorEventStore[N]
+  ): void => {
+    data[0] = toSynorError(data[0])
+    const hasListener = this.emit(event, ...data)
+    if (!hasListener) {
+      throw data[0]
+    }
+  }
+
   private readonly decorate = <T extends (...params: any[]) => Promise<void>>(
     startEvent: keyof MigratorEventStore,
     handler: T,
-    endEvent: keyof MigratorEventStore
+    endEvent: keyof MigratorEventStore,
+    withoutLock: boolean = false
   ) => async (...params: Parameters<T>) => {
     try {
-      await this.lock()
+      if (!withoutLock) {
+        await this.lock()
+      }
       this.emit(startEvent)
       await handler(...params)
       this.emit(endEvent)
     } catch (error) {
-      this.emit('error', error)
+      this.emitOrThrow('error', error)
     } finally {
-      await this.unlock()
-    }
-  }
-
-  private readonly emitOrThrow = (
-    event: 'migrate:error' | 'validate:error',
-    data: any,
-    error: Error
-  ): void => {
-    const hasListener = this.emit(event, data, error)
-    if (!hasListener) {
-      throw error
+      if (!withoutLock) {
+        await this.unlock()
+      }
     }
   }
 
   private readonly lock = async (): Promise<void> => {
-    this.emit('lock:start')
     if (this.locked) {
       throw new SynorError('Already Locked')
     }
     await this.database.lock()
     this.locked = true
-    this.emit('lock:end')
   }
 
   private readonly unlock = async (): Promise<void> => {
-    this.emit('unlock:start')
     if (!this.locked) {
-      throw new SynorError('Not Locked')
+      throw new SynorError('Not Yet Locked')
     }
     await this.database.unlock()
     this.locked = false
-    this.emit('unlock:end')
   }
 
   open = async (): Promise<void> => {
-    this.emit('open:start')
     await Promise.all([this.database.open(), this.source.open()])
-    this.emit('open:end')
   }
 
   close = async (): Promise<void> => {
     if (this.locked) {
       await this.unlock()
     }
-
-    this.emit('close:start')
     await Promise.all([this.database.close(), this.source.close()])
-    this.emit('close:end')
   }
 
   drop = async (): Promise<void> => {
@@ -238,7 +241,7 @@ export class SynorMigrator extends EventEmitter {
         validateMigration(record, migration)
         this.emit('validate:run:end', record)
       } catch (error) {
-        this.emitOrThrow('validate:error', record, error)
+        this.emitOrThrow('validate:error', error, record)
       }
     }
   }
@@ -259,7 +262,7 @@ export class SynorMigrator extends EventEmitter {
         await this.database.run(migration)
         this.emit('migrate:run:end', migration)
       } catch (error) {
-        this.emitOrThrow('migrate:error', migration, error)
+        this.emitOrThrow('migrate:error', error, migration)
       }
     }
   }

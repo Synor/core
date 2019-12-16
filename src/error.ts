@@ -21,6 +21,10 @@ export class SynorError extends Error {
 
     Error.captureStackTrace(this, this.constructor)
 
+    if (data instanceof Error) {
+      this.stack = `${data.stack}\n${this.stack}`
+    }
+
     this.name = this.constructor.name
     this.type = type
     this.data = data
@@ -43,4 +47,10 @@ export class SynorValidationError extends SynorError {
   constructor(type: SynorValidationErrorType, data: MigrationRecord) {
     super('SynorValidationError', data, type)
   }
+}
+
+export const toSynorError = (error: Error): SynorError => {
+  return error instanceof SynorError
+    ? error
+    : new SynorError(`Exception: ${error.message}`, error, 'exception')
 }
