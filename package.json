@@ -1,6 +1,6 @@
 {
   "name": "@synor/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Synor - Database Migration Library - Core",
   "keywords": [
     "synor",
@@ -22,7 +22,9 @@
     "prebuild": "npm run clean",
     "build": "bili",
     "clean": "rimraf lib/*",
-    "test": "jest"
+    "prepack": "npm run build",
+    "test": "jest",
+    "watch": "bili --format cjs --watch"
   },
   "dependencies": {
     "debug": "^4.1.1",
