@@ -6,12 +6,12 @@ const smallerThan: Record<Direction, -1 | 1> = {
 }
 
 const greaterThan: Record<Direction, -1 | 1> = {
-  ASC: -1,
-  DESC: 1
+  ASC: 1,
+  DESC: -1
 }
 
 function compareVersion(
-  direction: Direction = 'ASC',
+  direction: Direction,
   versionA: string,
   versionB: string
 ): -1 | 0 | 1 {
