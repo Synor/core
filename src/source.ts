@@ -1,3 +1,5 @@
+import { SynorError } from './error'
+
 type MigrationInfo = import('./migration').MigrationInfo
 type MigrationType = import('./migration').MigrationType
 type SynorConfig = import('.').SynorConfig
@@ -28,5 +30,11 @@ export function SynorSource({
   sourceUri,
   migrationInfoParser
 }: SynorSourceConfig): SourceEngine {
-  return SourceEngine(sourceUri, { migrationInfoParser })
+  if (typeof SourceEngine !== 'function') {
+    throw new SynorError('Missing SourceEngine')
+  }
+
+  return SourceEngine(sourceUri, {
+    migrationInfoParser
+  })
 }

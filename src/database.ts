@@ -1,3 +1,5 @@
+import { SynorError } from './error'
+
 type MigrationRecord = import('./migration').MigrationRecord
 type MigrationSource = import('./migration').MigrationSource
 type SynorConfig = import('.').SynorConfig
@@ -37,6 +39,10 @@ export function SynorDatabase({
   getAdvisoryLockId,
   getUserInfo
 }: SynorDatabaseConfig): DatabaseEngine {
+  if (typeof DatabaseEngine !== 'function') {
+    throw new SynorError('Missing DatabaseEngine')
+  }
+
   return DatabaseEngine(databaseUri, {
     baseVersion,
     getAdvisoryLockId,
