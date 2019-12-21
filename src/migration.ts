@@ -55,14 +55,14 @@ function getMigrationInfoRegex({
   return new RegExp(`^(${version}).(${type})${SEPERATOR}(${title})\\.(.+)$`)
 }
 
-export const getMigrationInfoParser = ({
-  migrationInfoNotation
-}: SynorConfig): MigrationInfoParser => {
-  const migrationInfoRegex = getMigrationInfoRegex(migrationInfoNotation)
+export const getMigrationInfoParser = (
+  notation: SynorConfig['migrationInfoNotation']
+): MigrationInfoParser => {
+  const migrationInfoRegex = getMigrationInfoRegex(notation)
 
   const typeMap: Record<string, MigrationType> = {
-    [migrationInfoNotation.do]: 'do',
-    [migrationInfoNotation.undo]: 'undo'
+    [notation.do]: 'do',
+    [notation.undo]: 'undo'
   }
 
   return migrationFilename => {

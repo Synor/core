@@ -61,7 +61,9 @@ export function Synor(synorConfig: Partial<SynorConfig>): Synor {
   const config: SynorConfig = defaultsDeep(synorConfig, defaultConfig)
 
   if (typeof config.migrationInfoParser !== 'function') {
-    config.migrationInfoParser = getMigrationInfoParser(config)
+    config.migrationInfoParser = getMigrationInfoParser(
+      config.migrationInfoNotation
+    )
   }
 
   const migrator = new SynorMigrator(config)
