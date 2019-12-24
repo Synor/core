@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`migrator:getMigration returns data (if available) 1`] = `
+Object {
+  "body": "",
+  "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "title": "",
+  "type": "do",
+  "version": "01",
+}
+`;

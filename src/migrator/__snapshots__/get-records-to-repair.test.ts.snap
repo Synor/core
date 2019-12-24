@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`migrator:getRecordsToRepair skips dirty records 1`] = `Array []`;
+
+exports[`migrator:getRecordsToRepair skips record with base version 1`] = `Array []`;
+
+exports[`migrator:getRecordsToRepair works as expected 1`] = `
+Array [
+  Object {
+    "hash": "2.x",
+    "id": 5,
+  },
+]
+`;
