@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - lts/carbon
+cache:
+  directories:
+    - node_modules
+install:
+  - yarn
+script:
+  - jest --ci --coverage
+after_success:
+  - npx codecov
