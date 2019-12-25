@@ -17,7 +17,7 @@ describe('SynorMigration', () => {
       migrationInfoParser = getMigrationInfoParser({
         do: 'do',
         undo: 'undo',
-        seperator: '--'
+        separator: '--'
       })
     })
 

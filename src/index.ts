@@ -38,7 +38,7 @@ export type SynorConfig = {
   migrationInfoNotation: {
     do: string
     undo: string
-    seperator: string
+    separator: string
   }
   migrationInfoParser: MigrationInfoParser
   getAdvisoryLockId: GetAdvisoryLockId
@@ -51,7 +51,7 @@ const defaultConfig: Partial<SynorConfig> = {
   migrationInfoNotation: {
     do: 'do',
     undo: 'undo',
-    seperator: '.'
+    separator: '.'
   },
   getAdvisoryLockId,
   getUserInfo: getGitUserInfo
