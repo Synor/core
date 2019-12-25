@@ -4,6 +4,10 @@
 
 - ...
 
+## [0.4.1] - 2019-12-25
+
+- Fix typo in config option: `separator`
+
 ## [0.4.0] - 2019-12-24
 
 - Fix `sortVersions`
@@ -23,7 +27,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.4.0...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.4.1...HEAD
+[0.4.1]: https://github.com/Synor/core/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/Synor/core/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/Synor/core/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/Synor/core/compare/0.1.0...0.2.0
