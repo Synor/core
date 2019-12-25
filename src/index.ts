@@ -29,15 +29,39 @@ type Synor = {
 }
 
 export type SynorConfig = {
-  sourceUri: string
   SourceEngine: SourceEngineFactory
-  databaseUri: string
+  /**
+   * Source URI
+   */
+  sourceUri: string
   DatabaseEngine: DatabaseEngineFactory
+  /**
+   * Database URI
+   */
+  databaseUri: string
+  /**
+   * Specifies the base migration version
+   */
   baseVersion: string
+  /**
+   * If specified, all the migration records before this ID is ignored
+   */
   recordStartId: number
+  /**
+   * Modifies the behavior of the default `migrationInfoParser` function
+   */
   migrationInfoNotation: {
+    /**
+     * Notation for the DO `Type` migration
+     */
     do: string
+    /**
+     * Notation for the UNDO `Type` migration
+     */
     undo: string
+    /**
+     * Separator between `Version.Type` and `Title.Extension` of the migration filename
+     */
     separator: string
   }
   migrationInfoParser: MigrationInfoParser

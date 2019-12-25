@@ -116,6 +116,12 @@ export class SynorMigrator extends EventEmitter {
     this.repair = this.decorate('repair:start', this.repair, 'repair:end')
   }
 
+  /**
+   * Emits error event if listener is available.
+   * Otherwise throws the error.
+   *
+   * @typeparam N event name
+   */
   private readonly emitOrThrow = <
     N extends 'error' | 'migrate:error' | 'validate:error'
   >(
@@ -129,6 +135,18 @@ export class SynorMigrator extends EventEmitter {
     }
   }
 
+  /**
+   * Wraps a function with start and end events.
+   * It also wraps everything between `this.lock` and `this.unlock` calls
+   * to run the function inside an advisory lock.
+   *
+   * @param startEvent name of the start event
+   * @param handler function to wrap
+   * @param endEvent name of the end event
+   * @param withoutLock if `true`, `handler` is not called inside an advisory lock.
+   *
+   * @typeparam T type signature of the `handler`
+   */
   private readonly decorate = <T extends (...params: any[]) => Promise<void>>(
     startEvent: keyof MigratorEventStore,
     handler: T,
@@ -151,6 +169,9 @@ export class SynorMigrator extends EventEmitter {
     }
   }
 
+  /**
+   * Gets advisory lock
+   */
   private readonly lock = async (): Promise<void> => {
     if (this.locked) {
       throw new SynorError('Already Locked')
@@ -159,6 +180,9 @@ export class SynorMigrator extends EventEmitter {
     this.locked = true
   }
 
+  /**
+   * Releases advisory lock
+   */
   private readonly unlock = async (): Promise<void> => {
     if (!this.locked) {
       throw new SynorError('Not Yet Locked')
@@ -167,10 +191,16 @@ export class SynorMigrator extends EventEmitter {
     this.locked = false
   }
 
+  /**
+   * Opens connections to `DatabaseEngine` & `SourceEngine`.
+   */
   open = async (): Promise<void> => {
     await Promise.all([this.database.open(), this.source.open()])
   }
 
+  /**
+   * Closes connections to `DatabaseEngine` & `SourceEngine`.
+   */
   close = async (): Promise<void> => {
     if (this.locked) {
       await this.unlock()
@@ -178,10 +208,17 @@ export class SynorMigrator extends EventEmitter {
     await Promise.all([this.database.close(), this.source.close()])
   }
 
+  /**
+   * Drops everything in the database.
+   * It should only be used for development purposes.
+   */
   drop = async (): Promise<void> => {
     await this.database.drop()
   }
 
+  /**
+   * Retrieves record for the current migration version of the database.
+   */
   current = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
@@ -189,6 +226,11 @@ export class SynorMigrator extends EventEmitter {
     this.emit('current', currentRecord)
   }
 
+  /**
+   * Retrieves detailed records of the migrations that have already run on database.
+   *
+   * @param recordStartId ID of the record to start from
+   */
   history = async (
     recordStartId: number = this.config.recordStartId
   ): Promise<void> => {
@@ -197,6 +239,9 @@ export class SynorMigrator extends EventEmitter {
     this.emit('history', history)
   }
 
+  /**
+   * Retrieves the pending migrations that are available at source.
+   */
   pending = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
@@ -215,6 +260,9 @@ export class SynorMigrator extends EventEmitter {
     this.emit('pending', migrations)
   }
 
+  /**
+   * Validates the records for migrations that are currently applied.
+   */
   validate = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const records = await getHistory(
@@ -246,6 +294,11 @@ export class SynorMigrator extends EventEmitter {
     }
   }
 
+  /**
+   * Runs necessary migrations to reach the target migration version.
+   *
+   * @param targetVersion Target migration version
+   */
   migrate = async (targetVersion: string): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
@@ -267,6 +320,11 @@ export class SynorMigrator extends EventEmitter {
     }
   }
 
+  /**
+   * Repairs migration records.
+   * It updates the `hash` in records with the `hash` from source for mismatched hashes.
+   * It also deletes the records marked as `dirty`.
+   */
   repair = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const history = await getHistory(this.database, baseVersion, recordStartId)
