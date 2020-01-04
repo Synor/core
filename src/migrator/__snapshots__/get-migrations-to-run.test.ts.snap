@@ -73,8 +73,6 @@ Array [
 
 exports[`migrator:getMigrationsToRun works (from=to) 1`] = `Array []`;
 
-exports[`migrator:getMigrationsToRun works (from>to ; from is base) 1`] = `Array []`;
-
 exports[`migrator:getMigrationsToRun works (from>to ; not exists in middle) 1`] = `
 Array [
   Object {
