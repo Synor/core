@@ -61,6 +61,22 @@ describe('migrator:getMigrationsToRun', () => {
     ).resolves.toMatchSnapshot()
   })
 
+  test('#23 throws if (from<base)', async () => {
+    await expect(
+      getMigrationsToRun(source as any, '02', '01', '03')
+    ).rejects.toMatchInlineSnapshot(
+      `[SynorError: fromVersion(01) is below baseVersion(02)]`
+    )
+  })
+
+  test('#23 throws if (to<base)', async () => {
+    await expect(
+      getMigrationsToRun(source as any, '02', '03', '01')
+    ).rejects.toMatchInlineSnapshot(
+      `[SynorError: toVersion(01) is below baseVersion(02)]`
+    )
+  })
+
   test('throws (from<to ; from not exists)', async () => {
     try {
       await getMigrationsToRun(source as any, '0', '01', '05')
@@ -145,10 +161,12 @@ describe('migrator:getMigrationsToRun', () => {
     ).resolves.toMatchSnapshot()
   })
 
-  test('works (from>to ; from is base)', async () => {
+  test('#23 throws (from>to ; from is base)', async () => {
     await expect(
       getMigrationsToRun(source as any, '03', '03', '02')
-    ).resolves.toMatchSnapshot()
+    ).rejects.toMatchInlineSnapshot(
+      `[SynorError: toVersion(02) is below baseVersion(03)]`
+    )
   })
 
   test('works (from>to ; to is base)', async () => {

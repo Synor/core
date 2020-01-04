@@ -1,4 +1,4 @@
-import { SynorMigrationError } from '../error'
+import { SynorError, SynorMigrationError } from '../error'
 import { getMigration } from './get-migration'
 
 type MigrationSource = import('../migration').MigrationSource
@@ -14,6 +14,18 @@ export async function getMigrationsToRun(
   const migrations: MigrationSource[] = []
 
   let type: MigrationType
+
+  if (fromVersion < baseVersion) {
+    throw new SynorError(
+      `fromVersion(${fromVersion}) is below baseVersion(${baseVersion})`
+    )
+  }
+
+  if (toVersion < baseVersion) {
+    throw new SynorError(
+      `toVersion(${toVersion}) is below baseVersion(${baseVersion})`
+    )
+  }
 
   if (fromVersion < toVersion) {
     type = 'do'
