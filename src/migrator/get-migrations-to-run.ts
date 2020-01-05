@@ -50,10 +50,11 @@ export async function getMigrationsToRun(
   }
 
   if (type === 'do') {
-    let nextVersion =
-      fromVersion === baseVersion
-        ? await source.first()
-        : await source.next(fromVersion)
+    let nextVersion = await source.next(fromVersion)
+
+    if (fromVersion === baseVersion && !nextVersion) {
+      nextVersion = await source.first()
+    }
 
     while (nextVersion) {
       const migration = await getMigration(source, nextVersion, type)
