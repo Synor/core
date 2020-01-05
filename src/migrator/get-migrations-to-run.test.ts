@@ -67,9 +67,8 @@ describe('migrator:getMigrationsToRun', () => {
   }
 
   test('works (from=to)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '0', '01', '01')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '0', '01', '01')
+    expect(formatResult(result)).toMatchInlineSnapshot(`Array []`)
   })
 
   test('#23 throws if (from<base)', async () => {
@@ -119,21 +118,35 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from<to)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '0', '02', '04')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '0', '02', '04')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "03.do",
+        "04.do",
+      ]
+    `)
   })
 
   test('works (from<to ; from is base)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '01', '01', '04')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '01', '01', '04')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "02.do",
+        "03.do",
+        "04.do",
+      ]
+    `)
   })
 
   test('works (from<to ; not exists in middle)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '0', '02', '07')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '0', '02', '07')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "03.do",
+        "04.do",
+        "05.do",
+      ]
+    `)
   })
 
   test('throws (from>to ; from not exists)', async () => {
@@ -167,9 +180,13 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from>to)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '0', '04', '02')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '0', '04', '02')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "04.undo",
+        "03.undo",
+      ]
+    `)
   })
 
   test('#23 throws (from>to ; from is base)', async () => {
@@ -181,15 +198,24 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from>to ; to is base)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '01', '04', '01')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '01', '04', '01')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "04.undo",
+        "03.undo",
+        "02.undo",
+      ]
+    `)
   })
 
   test('works (from>to ; not exists in middle)', async () => {
-    await expect(
-      getMigrationsToRun(source as any, '0', '07', '02')
-    ).resolves.toMatchSnapshot()
+    const result = await getMigrationsToRun(source as any, '0', '07', '02')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "07.undo",
+        "06.undo",
+      ]
+    `)
   })
 
   test('#22 works (from<to ; from=base ; source: first<base<last)', async () => {
