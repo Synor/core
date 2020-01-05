@@ -3,6 +3,7 @@ import { getMigrationsToRun } from './get-migrations-to-run'
 import { getMigrationInfo } from './index.utils.test'
 
 type MigrationInfo = ReturnType<typeof getMigrationInfo>
+type MigrationSource = import('../index').MigrationSource
 type SourceEngine = import('../index').SourceEngine
 
 const infoMap: Record<
@@ -36,16 +37,26 @@ const infoMap: Record<
 }
 const versions = Object.keys(infoMap)
 
+const formatResult = (items: MigrationSource[]): string[] => {
+  return items.map(({ version, type }) => `${version}.${type}`)
+}
+
 describe('migrator:getMigrationsToRun', () => {
   const source: SourceEngine = {
     open: () => Promise.resolve(),
     close: () => Promise.resolve(),
     first: () => Promise.resolve(versions[0]),
     prev: (v: MigrationInfo['version']) => {
-      return Promise.resolve(versions[versions.indexOf(v) - 1] || null)
+      const currentIndex = versions.indexOf(v)
+      return Promise.resolve(
+        currentIndex === -1 ? null : versions[currentIndex - 1] || null
+      )
     },
     next: (v: MigrationInfo['version']) => {
-      return Promise.resolve(versions[versions.indexOf(v) + 1] || null)
+      const currentIndex = versions.indexOf(v)
+      return Promise.resolve(
+        currentIndex === -1 ? null : versions[currentIndex + 1] || null
+      )
     },
     last: () => Promise.resolve(versions[versions.length - 1]),
     get: (version: MigrationInfo['version'], type: MigrationInfo['type']) => {
@@ -179,5 +190,15 @@ describe('migrator:getMigrationsToRun', () => {
     await expect(
       getMigrationsToRun(source as any, '0', '07', '02')
     ).resolves.toMatchSnapshot()
+  })
+
+  test('#22 works (from<to ; from=base ; source: first<base<last)', async () => {
+    const result = await getMigrationsToRun(source as any, '03', '03', '05')
+    expect(formatResult(result)).toMatchInlineSnapshot(`
+      Array [
+        "04.do",
+        "05.do",
+      ]
+    `)
   })
 })
