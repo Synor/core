@@ -1,14 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SynorMigration getMigrationInfoParser returned function works (for valid filename) 1`] = `
-Object {
-  "filename": "001.do--Test.sql",
-  "title": "Test",
-  "type": "do",
-  "version": "001",
-}
-`;
-
 exports[`SynorMigration returns data 1`] = `
 Object {
   "body": "SELECT 1;",

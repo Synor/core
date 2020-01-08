@@ -1,4 +1,4 @@
-import { SynorMigration, getMigrationInfoParser } from './migration'
+import { getMigrationInfoParser, SynorMigration } from './migration'
 
 describe('SynorMigration', () => {
   test('returns data', () => {
@@ -17,7 +17,8 @@ describe('SynorMigration', () => {
       migrationInfoParser = getMigrationInfoParser({
         do: 'do',
         undo: 'undo',
-        separator: '--'
+        separator: '--',
+        extension: 'js|sql'
       })
     })
 
@@ -26,7 +27,29 @@ describe('SynorMigration', () => {
     })
 
     test('returned function works (for valid filename)', () => {
-      expect(migrationInfoParser('001.do--Test.sql')).toMatchSnapshot()
+      expect(migrationInfoParser('001.do--Test.sql')).toMatchInlineSnapshot(`
+        Object {
+          "filename": "001.do--Test.sql",
+          "title": "Test",
+          "type": "do",
+          "version": "001",
+        }
+      `)
+
+      expect(migrationInfoParser('001.do--Test.js')).toMatchInlineSnapshot(`
+        Object {
+          "filename": "001.do--Test.js",
+          "title": "Test",
+          "type": "do",
+          "version": "001",
+        }
+      `)
+
+      expect(() =>
+        migrationInfoParser('001.do--Test.json')
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"Invalid Filename: 001.do--Test.json"`
+      )
     })
 
     test('returned function throws (for invalid filename)', () => {

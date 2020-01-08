@@ -46,13 +46,16 @@ export type MigrationHistory = Array<
 function getMigrationInfoRegex({
   do: DO,
   undo: UNDO,
-  separator: SEPARATOR
+  separator: SEPARATOR,
+  extension: EXTENSION
 }: SynorConfig['migrationInfoNotation']): RegExp {
   const version = `[0-9]+`
   const type = [DO, UNDO].join('|')
   const title = '[\\S ]+'
 
-  return new RegExp(`^(${version}).(${type})${SEPARATOR}(${title})\\.(.+)$`)
+  return new RegExp(
+    `^(${version}).(${type})${SEPARATOR}(${title})\\.(${EXTENSION})$`
+  )
 }
 
 export const getMigrationInfoParser = (
