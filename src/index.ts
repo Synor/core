@@ -63,6 +63,10 @@ export type SynorConfig = {
      * Separator between `Version.Type` and `Title.Extension` of the migration filename
      */
     separator: string
+    /**
+     * Regular expression pattern for filename extension
+     */
+    extension: string
   }
   migrationInfoParser: MigrationInfoParser
   getAdvisoryLockId: GetAdvisoryLockId
@@ -75,7 +79,8 @@ const defaultConfig: Partial<SynorConfig> = {
   migrationInfoNotation: {
     do: 'do',
     undo: 'undo',
-    separator: '.'
+    separator: '.',
+    extension: '.+'
   },
   getAdvisoryLockId,
   getUserInfo: getGitUserInfo
