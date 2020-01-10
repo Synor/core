@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { SynorDatabase } from '../database'
-import { SynorMigrationError, SynorError } from '../error'
+import { SynorError } from '../error'
 import { SynorSource } from '../source'
 import * as getCurrentRecordModule from './get-current-record'
 import * as getHistoryModule from './get-history'
@@ -391,7 +391,7 @@ describe('SynorMigrator', () => {
       try {
         await migrator.validate()
       } catch (error) {
-        expect(error).toBeInstanceOf(SynorMigrationError)
+        expect(error).toBeInstanceOf(SynorError)
         expect(error.type).toMatchInlineSnapshot(`"not_found"`)
       }
 

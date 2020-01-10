@@ -1,4 +1,4 @@
-import { SynorMigrationError } from '../error'
+import { SynorError } from '../error'
 import { getMigrationsToRun } from './get-migrations-to-run'
 import { getMigrationInfo } from './index.utils.test'
 
@@ -91,7 +91,7 @@ describe('migrator:getMigrationsToRun', () => {
     try {
       await getMigrationsToRun(source as any, '0', '01', '05')
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorMigrationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
         Object {
           "type": "do",
@@ -106,7 +106,7 @@ describe('migrator:getMigrationsToRun', () => {
     try {
       await getMigrationsToRun(source as any, '0', '02', '99')
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorMigrationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
         Object {
           "type": "do",
@@ -153,7 +153,7 @@ describe('migrator:getMigrationsToRun', () => {
     try {
       await getMigrationsToRun(source as any, '0', '99', '02')
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorMigrationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
         Object {
           "type": "undo",
@@ -168,7 +168,7 @@ describe('migrator:getMigrationsToRun', () => {
     try {
       await getMigrationsToRun(source as any, '0', '04', '01')
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorMigrationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
         Object {
           "type": "undo",

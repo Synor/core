@@ -1,4 +1,4 @@
-import { SynorMigrationError } from '../error'
+import { SynorError } from '../error'
 import { getMigration } from './get-migration'
 
 type MigrationHistory = import('../migration').MigrationHistory
@@ -17,7 +17,7 @@ export async function getRecordsToRepair(
 
   const mismatchedRecords: MismatchedRecord[] = []
 
-  for (const { id, version, type, hash } of appliedRecords) {
+  for (const { id, version, type, title, hash } of appliedRecords) {
     if (version === baseVersion) {
       continue
     }
@@ -25,7 +25,11 @@ export async function getRecordsToRepair(
     const migration = await getMigration(source, version, type)
 
     if (!migration) {
-      throw new SynorMigrationError('not_found', { id, version, type })
+      throw new SynorError(
+        `Missing Migration Source => Version(${version}) Type(${type}) Title(${title})`,
+        'not_found',
+        { id, version, type, title }
+      )
     }
 
     if (migration.hash !== hash) {

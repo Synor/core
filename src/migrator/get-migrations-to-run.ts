@@ -1,4 +1,4 @@
-import { SynorError, SynorMigrationError } from '../error'
+import { SynorError } from '../error'
 import { getMigration } from './get-migration'
 
 type MigrationSource = import('../migration').MigrationSource
@@ -38,14 +38,22 @@ export async function getMigrationsToRun(
   if (fromVersion !== baseVersion) {
     const fromVersionExist = await source.get(fromVersion, type)
     if (!fromVersionExist) {
-      throw new SynorMigrationError('not_found', { version: fromVersion, type })
+      throw new SynorError(
+        `Missing Migration Source => Version(${fromVersion}) Type(${type})`,
+        'not_found',
+        { version: fromVersion, type }
+      )
     }
   }
 
   if (toVersion !== baseVersion) {
     const toVersionExist = await source.get(toVersion, type)
     if (!toVersionExist) {
-      throw new SynorMigrationError('not_found', { version: toVersion, type })
+      throw new SynorError(
+        `Missing Migration Source => Version(${toVersion}) Type(${type})`,
+        'not_found',
+        { version: toVersion, type }
+      )
     }
   }
 
