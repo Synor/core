@@ -4,6 +4,12 @@
 
 - ...
 
+## [0.6.0] - 2020-01-11
+
+- Close: [#26](https://github.com/Synor/core/issues/26)
+- Close: [#28](https://github.com/Synor/core/issues/28)
+- Refactor `SynorError` (internal)
+
 ## [0.5.0] - 2020-01-05
 
 - Fix: [#22](https://github.com/Synor/core/issues/22)
@@ -32,7 +38,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.5.0...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/Synor/core/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/Synor/core/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/Synor/core/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/Synor/core/compare/0.3.0...0.4.0
