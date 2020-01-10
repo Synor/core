@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { SynorDatabase } from '../database'
-import { SynorError, SynorMigrationError, toSynorError } from '../error'
+import { SynorError, toSynorError } from '../error'
 import { SynorSource } from '../source'
 import { getCurrentRecord } from './get-current-record'
 import { getHistory } from './get-history'
@@ -283,7 +283,11 @@ export class SynorMigrator extends EventEmitter {
         record.type
       )
       if (!migration) {
-        throw new SynorMigrationError('not_found', record)
+        throw new SynorError(
+          `Missing Migration Source => Version(${record.version}) Type(${record.type}) Title(${record.title})`,
+          'not_found',
+          record
+        )
       }
       try {
         validateMigration(record, migration)

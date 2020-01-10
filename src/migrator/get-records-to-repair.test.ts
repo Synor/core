@@ -1,4 +1,4 @@
-import { SynorMigrationError } from '../error'
+import { SynorError } from '../error'
 import * as getMigrationModule from './get-migration'
 import { getRecordsToRepair } from './get-records-to-repair'
 import { getMigrationHistoryItem, getMigrationSource } from './index.utils.test'
@@ -23,7 +23,7 @@ describe('migrator:getRecordsToRepair', () => {
     try {
       await getRecordsToRepair(source as any, '0', history)
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorMigrationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.type).toMatchInlineSnapshot(`"not_found"`)
     }
   })

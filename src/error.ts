@@ -1,3 +1,5 @@
+/* eslint-disable no-dupe-class-members */
+
 type MigrationRecord = import('./migration').MigrationRecord
 
 type SynorMigrationErrorType = 'not_found'
@@ -9,14 +11,44 @@ type SynorErrorType =
   | 'invalid_filename'
   | 'exception'
 
-export class SynorError extends Error {
-  type: SynorErrorType
-  data: any
+type SynorErrorDataType = {
+  dirty: MigrationRecord
+  hash_mismatch: MigrationRecord
+  not_found: Partial<MigrationRecord>
+  invalid_filename: { filename: string }
+  exception: Error | Record<string, any>
+}
+
+export class SynorError<
+  ErrorType extends SynorErrorType = 'exception'
+> extends Error {
+  type: ErrorType
+  data: SynorErrorDataType[ErrorType]
+
+  /**
+   * Creates a general instance of SynorError
+   *
+   * @param message Error message
+   */
+  constructor(message: string)
+
+  /**
+   * Creates a special instance of SynorError with `type` and `data`
+   *
+   * @param message Error message
+   * @param type Error type
+   * @param data Error data
+   */
+  constructor(
+    message: string,
+    type: ErrorType,
+    data: SynorErrorDataType[ErrorType]
+  )
 
   constructor(
     message: string,
-    data: any = {},
-    type: SynorErrorType = 'exception'
+    type: SynorErrorType = 'exception',
+    data: SynorErrorDataType[SynorErrorType] = {}
   ) {
     super(message)
 
@@ -27,31 +59,21 @@ export class SynorError extends Error {
     }
 
     this.name = this.constructor.name
-    this.type = type
-    this.data = data
+    this.type = type as ErrorType
+    this.data = data as SynorErrorDataType[ErrorType]
   }
 }
 
-export class SynorMigrationError extends SynorError {
-  type!: SynorMigrationErrorType
-  data!: Partial<MigrationRecord>
-
-  constructor(type: SynorMigrationErrorType, data: Partial<MigrationRecord>) {
-    super('SynorMigrationError', data, type)
+export function toSynorError<T extends SynorErrorType = 'exception'>(
+  error: Error | SynorError<T>
+): SynorError<T> {
+  if (error instanceof SynorError) {
+    return error
   }
-}
 
-export class SynorValidationError extends SynorError {
-  type!: SynorValidationErrorType
-  data!: MigrationRecord
-
-  constructor(type: SynorValidationErrorType, data: MigrationRecord) {
-    super('SynorValidationError', data, type)
-  }
-}
-
-export const toSynorError = (error: Error): SynorError => {
-  return error instanceof SynorError
-    ? error
-    : new SynorError(`Exception: ${error.message}`, error, 'exception')
+  return new SynorError(
+    `Exception: ${error.message}`,
+    'exception',
+    error
+  ) as SynorError<T>
 }

@@ -1,4 +1,4 @@
-import { SynorValidationError } from '../error'
+import { SynorError } from '../error'
 import { getMigrationRecord, getMigrationSource } from './index.utils.test'
 import { validateMigration } from './validate-migration'
 
@@ -17,7 +17,7 @@ describe('migrator:validateMigration', () => {
     try {
       validateMigration(record, source)
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorValidationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.type).toMatchInlineSnapshot(`"dirty"`)
     }
   })
@@ -29,7 +29,7 @@ describe('migrator:validateMigration', () => {
     try {
       validateMigration(record, source)
     } catch (error) {
-      expect(error).toBeInstanceOf(SynorValidationError)
+      expect(error).toBeInstanceOf(SynorError)
       expect(error.type).toMatchInlineSnapshot(`"hash_mismatch"`)
     }
   })
