@@ -6,6 +6,7 @@ type SynorValidationErrorType = 'dirty' | 'hash_mismatch'
 type SynorErrorType =
   | SynorMigrationErrorType
   | SynorValidationErrorType
+  | 'invalid_filename'
   | 'exception'
 
 export class SynorError extends Error {

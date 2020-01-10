@@ -1,3 +1,4 @@
+import { SynorError } from './error'
 import { getMigrationInfoParser, SynorMigration } from './migration'
 
 describe('SynorMigration', () => {
@@ -44,16 +45,21 @@ describe('SynorMigration', () => {
           "version": "001",
         }
       `)
-
-      expect(() =>
-        migrationInfoParser('001.do--Test.json')
-      ).toThrowErrorMatchingInlineSnapshot(
-        `"Invalid Filename: 001.do--Test.json"`
-      )
     })
 
     test('returned function throws (for invalid filename)', () => {
-      expect(() => migrationInfoParser('001.do__Test.sql')).toThrow()
+      try {
+        migrationInfoParser('001.do--Test.json')
+      } catch (error) {
+        expect(error).toBeInstanceOf(SynorError)
+        // #28
+        expect(error.data).toMatchInlineSnapshot(`
+          Object {
+            "filename": "001.do--Test.json",
+          }
+        `)
+        expect(error.type).toMatchInlineSnapshot(`"invalid_filename"`)
+      }
     })
   })
 })
