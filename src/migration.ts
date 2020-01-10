@@ -72,7 +72,11 @@ export const getMigrationInfoParser = (
     const infoMatches = migrationFilename.match(migrationInfoRegex)
 
     if (infoMatches === null) {
-      throw new SynorError(`Invalid Filename: ${migrationFilename}`)
+      throw new SynorError(
+        `Invalid Filename: ${migrationFilename}`,
+        { filename: migrationFilename },
+        'invalid_filename'
+      )
     }
 
     const [filename, version, type, title] = infoMatches
