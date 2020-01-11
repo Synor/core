@@ -5,7 +5,7 @@ import { getGitUserInfo } from './user-info'
 import { getAdvisoryLockId } from './utils/get-advisory-lock-id'
 
 export { DatabaseEngine, DatabaseEngineFactory } from './database'
-export { SynorError } from './error'
+export { isSynorError, SynorError } from './error'
 export {
   MigrationHistory,
   MigrationInfo,

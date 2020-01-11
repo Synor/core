@@ -2,28 +2,26 @@
 
 type MigrationRecord = import('./migration').MigrationRecord
 
-type SynorMigrationErrorType = 'not_found'
-type SynorValidationErrorType = 'dirty' | 'hash_mismatch'
-
-type SynorErrorType =
-  | SynorMigrationErrorType
-  | SynorValidationErrorType
-  | 'invalid_filename'
-  | 'exception'
-
-type SynorErrorDataType = {
+type SynorErrorStore = {
   dirty: MigrationRecord
   hash_mismatch: MigrationRecord
-  not_found: Partial<MigrationRecord>
   invalid_filename: { filename: string }
-  exception: Error | Record<string, any>
+  not_found: Partial<MigrationRecord>
+  exception: Error | null
 }
 
+export type SynorErrorType = keyof SynorErrorStore
+
+type SynorErrorData<
+  ErrorType extends SynorErrorType
+> = SynorErrorStore[ErrorType]
+
 export class SynorError<
-  ErrorType extends SynorErrorType = 'exception'
+  ErrorType extends SynorErrorType = 'exception',
+  ErrorData extends SynorErrorData<ErrorType> = SynorErrorData<ErrorType>
 > extends Error {
   type: ErrorType
-  data: SynorErrorDataType[ErrorType]
+  data: ErrorData
 
   /**
    * Creates a general instance of SynorError
@@ -39,16 +37,12 @@ export class SynorError<
    * @param type Error type
    * @param data Error data
    */
-  constructor(
-    message: string,
-    type: ErrorType,
-    data: SynorErrorDataType[ErrorType]
-  )
+  constructor(message: string, type: ErrorType, data: NonNullable<ErrorData>)
 
   constructor(
     message: string,
     type: SynorErrorType = 'exception',
-    data: SynorErrorDataType[SynorErrorType] = {}
+    data: SynorErrorData<SynorErrorType> = null
   ) {
     super(message)
 
@@ -60,8 +54,30 @@ export class SynorError<
 
     this.name = this.constructor.name
     this.type = type as ErrorType
-    this.data = data as SynorErrorDataType[ErrorType]
+    this.data = data as ErrorData
   }
+}
+
+/**
+ * Checks if `error` is an instance of `SynorError`.
+ *
+ * Optionally, checks if the instance of `SynorError` has the exact `type`.
+ *
+ * @param error Error
+ * @param type `SynorError` type
+ */
+export function isSynorError<T extends SynorErrorType | undefined>(
+  error: Error,
+  type?: T
+): error is SynorError<
+  T extends SynorErrorType ? T : SynorErrorType,
+  T extends SynorErrorType ? SynorErrorStore[T] : any
+> {
+  if (error instanceof SynorError) {
+    return type ? error.type === type : true
+  }
+
+  return false
 }
 
 export function toSynorError<T extends SynorErrorType = 'exception'>(
