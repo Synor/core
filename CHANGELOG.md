@@ -4,6 +4,10 @@
 
 - ...
 
+## [0.7.0] - 2020-01-14
+
+- Close: [#31](https://github.com/Synor/core/issues/31)
+
 ## [0.6.1] - 2020-01-12
 
 - Improve TypeScript support for `SynorError` (internal)
@@ -43,7 +47,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.6.1...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/Synor/core/compare/0.6.1...0.7.0
 [0.6.1]: https://github.com/Synor/core/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/Synor/core/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/Synor/core/compare/0.4.1...0.5.0
