@@ -271,8 +271,7 @@ export class SynorMigrator extends EventEmitter {
       recordStartId
     ).then(history =>
       history.filter(
-        ({ version, type, state }) =>
-          version !== baseVersion && type === 'do' && state === 'applied'
+        ({ version, state }) => version !== baseVersion && state === 'applied'
       )
     )
     for (const record of records) {
