@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`migrator:getHistory works as expected 1`] = `
+exports[`migrator:getMigrationRecordInfos works as expected 1`] = `
 Array [
   Object {
     "appliedAt": 2020-01-01T00:00:00.000Z,

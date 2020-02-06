@@ -3,8 +3,8 @@ import { SynorDatabase } from '../database'
 import { SynorError } from '../error'
 import { SynorSource } from '../source'
 import * as getCurrentRecordModule from './get-current-record'
-import * as getHistoryModule from './get-history'
 import * as getMigrationModule from './get-migration'
+import * as getMigrationRecordInfosModule from './get-migration-record-infos'
 import * as getMigrationsToRunModule from './get-migrations-to-run'
 import * as getRecordsToRepairModule from './get-records-to-repair'
 import { SynorMigrator } from './index'
@@ -34,8 +34,8 @@ jest.mock('../source', () => ({
   SynorSource: jest.fn(() => source)
 }))
 
-jest.mock('./get-history', () => ({
-  getHistory: jest.fn()
+jest.mock('./get-migration-record-infos', () => ({
+  getMigrationRecordInfos: jest.fn()
 }))
 
 jest.mock('./get-current-record', () => ({
@@ -227,8 +227,8 @@ describe('SynorMigrator', () => {
 
     test('current', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue('history' as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue('recordInfos' as any)
       jest
         .spyOn(getCurrentRecordModule, 'getCurrentRecord')
         .mockReturnValue('current-record' as any)
@@ -240,7 +240,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.current()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
@@ -262,15 +264,15 @@ describe('SynorMigrator', () => {
 
     test('info (without pending)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue(['history'] as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue([{ recordInfo: 42 }] as any)
       jest.spyOn(getCurrentRecordModule, 'getCurrentRecord').mockReturnValue({
         version: '99'
       } as any)
       source.last.mockResolvedValue('01')
       jest
         .spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
-        .mockResolvedValue(['pending'] as any)
+        .mockResolvedValue([{ migration: 42 }] as any)
 
       migrator
         .on('info:start', onSpy)
@@ -279,7 +281,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.info()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
@@ -292,7 +296,9 @@ describe('SynorMigrator', () => {
           Array [],
           Array [
             Array [
-              "history",
+              Object {
+                "recordInfo": 42,
+              },
             ],
           ],
           Array [],
@@ -304,15 +310,15 @@ describe('SynorMigrator', () => {
 
     test('info (with pending)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue(['history'] as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue([{ recordInfo: 42 }] as any)
       jest
         .spyOn(getCurrentRecordModule, 'getCurrentRecord')
         .mockReturnValue({ version: '01' } as any)
       source.last.mockResolvedValue('99')
       jest
         .spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
-        .mockResolvedValue(['pending'] as any)
+        .mockResolvedValue([{ migration: 42 }] as any)
 
       migrator
         .on('info:start', onSpy)
@@ -321,7 +327,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.info()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
@@ -337,8 +345,13 @@ describe('SynorMigrator', () => {
           Array [],
           Array [
             Array [
-              "history",
-              "pending",
+              Object {
+                "recordInfo": 42,
+              },
+              Object {
+                "migration": 42,
+                "state": "pending",
+              },
             ],
           ],
           Array [],
@@ -350,7 +363,7 @@ describe('SynorMigrator', () => {
 
     test('validate (throws if migration not found)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
         .mockResolvedValue([{ type: 'do', state: 'applied' }] as any)
       jest.spyOn(getMigrationModule, 'getMigration').mockResolvedValue(null)
 
@@ -371,7 +384,9 @@ describe('SynorMigrator', () => {
         expect(error.type).toMatchInlineSnapshot(`"not_found"`)
       }
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(jest.spyOn(getMigrationModule, 'getMigration')).toHaveBeenCalled()
 
       expect(onSpy.mock.calls).toMatchInlineSnapshot(`
@@ -393,7 +408,7 @@ describe('SynorMigrator', () => {
 
     test('validate (if invalid)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
         .mockResolvedValue([{ type: 'do', state: 'applied' }] as any)
       jest
         .spyOn(getMigrationModule, 'getMigration')
@@ -413,7 +428,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.validate()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(jest.spyOn(getMigrationModule, 'getMigration')).toHaveBeenCalled()
       expect(
         jest.spyOn(validateMigrationModule, 'validateMigration')
@@ -446,7 +463,7 @@ describe('SynorMigrator', () => {
 
     test('validate (if valid)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
         .mockResolvedValue([{ type: 'do', state: 'applied' }] as any)
       jest
         .spyOn(getMigrationModule, 'getMigration')
@@ -462,7 +479,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.validate()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(jest.spyOn(getMigrationModule, 'getMigration')).toHaveBeenCalled()
       expect(
         jest.spyOn(validateMigrationModule, 'validateMigration')
@@ -494,8 +513,8 @@ describe('SynorMigrator', () => {
 
     test('migrate (run error)', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue('history' as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue('recordInfos' as any)
       jest
         .spyOn(getCurrentRecordModule, 'getCurrentRecord')
         .mockReturnValue('current' as any)
@@ -513,7 +532,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.migrate('target' as any)).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
@@ -543,8 +564,8 @@ describe('SynorMigrator', () => {
 
     test('migrate', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue('history' as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue('recordInfos' as any)
       jest
         .spyOn(getCurrentRecordModule, 'getCurrentRecord')
         .mockReturnValue('current' as any)
@@ -561,7 +582,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.migrate('target' as any)).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
@@ -590,8 +613,8 @@ describe('SynorMigrator', () => {
 
     test('repair', async () => {
       jest
-        .spyOn(getHistoryModule, 'getHistory')
-        .mockResolvedValue('history' as any)
+        .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+        .mockResolvedValue('recordInfos' as any)
       jest
         .spyOn(getRecordsToRepairModule, 'getRecordsToRepair')
         .mockReturnValue('records-to-repair' as any)
@@ -600,7 +623,9 @@ describe('SynorMigrator', () => {
 
       await expect(migrator.repair()).resolves.toBeUndefined()
 
-      expect(jest.spyOn(getHistoryModule, 'getHistory')).toHaveBeenCalled()
+      expect(
+        jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
+      ).toHaveBeenCalled()
       expect(
         jest.spyOn(getRecordsToRepairModule, 'getRecordsToRepair')
       ).toHaveBeenCalled()

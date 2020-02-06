@@ -1,11 +1,9 @@
-type MigrationHistory = import('./index').MigrationHistory
 type MigrationInfo = import('./index').MigrationInfo
 type MigrationRecord = import('./index').MigrationRecord
+type MigrationRecordInfo = import('./index').MigrationRecordInfo
 type MigrationSource = import('./index').MigrationSource
 
-type MigrationHistoryItem = MigrationHistory[number]
-
-const dummyMigrationHistoryItem: MigrationHistoryItem = {
+const dummyMigrationRecordInfo: MigrationRecordInfo = {
   id: 0,
   version: '0',
   type: 'do',
@@ -19,11 +17,11 @@ const dummyMigrationHistoryItem: MigrationHistoryItem = {
   revertedBy: null
 }
 
-export const getMigrationHistoryItem = (
-  historyItem: Partial<MigrationHistoryItem>
-): MigrationHistoryItem => ({
-  ...dummyMigrationHistoryItem,
-  ...historyItem
+export const getMigrationRecordInfo = (
+  recordInfo: Partial<MigrationRecordInfo>
+): MigrationRecordInfo => ({
+  ...dummyMigrationRecordInfo,
+  ...recordInfo
 })
 
 const dummyMigrationRecord: MigrationRecord = {

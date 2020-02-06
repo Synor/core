@@ -3,16 +3,17 @@ import { SynorDatabase } from '../database'
 import { SynorError, toSynorError } from '../error'
 import { SynorSource } from '../source'
 import { getCurrentRecord } from './get-current-record'
-import { getHistory } from './get-history'
 import { getMigration } from './get-migration'
+import { getMigrationRecordInfos } from './get-migration-record-infos'
 import { getMigrationsToRun } from './get-migrations-to-run'
 import { getRecordsToRepair } from './get-records-to-repair'
 import { validateMigration } from './validate-migration'
 
 type DatabaseEngine = import('../database').DatabaseEngine
-type MigrationHistory = import('../migration').MigrationHistory
 type MigrationRecord = import('../migration').MigrationRecord
+type MigrationRecordInfo = import('../migration').MigrationRecordInfo
 type MigrationSource = import('../migration').MigrationSource
+type MigrationSourceInfo = import('../migration').MigrationSourceInfo
 type SourceEngine = import('../source').SourceEngine
 type SynorConfig = import('..').SynorConfig
 
@@ -28,10 +29,10 @@ type MigratorEventStore = {
   'drop:start': []
   'drop:end': []
   'current:start': []
-  current: [MigrationHistory[number]]
+  current: [MigrationRecordInfo]
   'current:end': []
   'info:start': []
-  info: [Array<MigrationHistory[number] | MigrationSource>]
+  info: [Array<MigrationRecordInfo | MigrationSourceInfo>]
   'info:end': []
   'validate:start': []
   'validate:run:start': [MigrationRecord]
@@ -217,9 +218,13 @@ export class SynorMigrator extends EventEmitter {
    */
   current = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
-    const history = await getHistory(this.database, baseVersion, recordStartId)
-    const currentRecord = getCurrentRecord(history)
-    this.emit('current', currentRecord)
+    const recordInfos = await getMigrationRecordInfos(
+      this.database,
+      baseVersion,
+      recordStartId
+    )
+    const currentRecordInfo = getCurrentRecord(recordInfos)
+    this.emit('current', currentRecordInfo)
   }
 
   /**
@@ -227,10 +232,14 @@ export class SynorMigrator extends EventEmitter {
    */
   info = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
-    const items: Array<MigrationHistory[number] | MigrationSource> = []
-    const history = await getHistory(this.database, baseVersion, recordStartId)
-    items.push(...history)
-    const currentVersion = getCurrentRecord(history).version
+    const items: Array<MigrationRecordInfo | MigrationSourceInfo> = []
+    const recordInfos = await getMigrationRecordInfos(
+      this.database,
+      baseVersion,
+      recordStartId
+    )
+    items.push(...recordInfos)
+    const currentVersion = getCurrentRecord(recordInfos).version
     const targetVersion = await this.source.last()
     if (!targetVersion || currentVersion >= targetVersion) {
       this.emit('info', items)
@@ -241,6 +250,8 @@ export class SynorMigrator extends EventEmitter {
       baseVersion,
       currentVersion,
       targetVersion
+    ).then(items =>
+      items.map<MigrationSourceInfo>(item => ({ ...item, state: 'pending' }))
     )
     items.push(...migrations)
     this.emit('info', items)
@@ -251,16 +262,16 @@ export class SynorMigrator extends EventEmitter {
    */
   validate = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
-    const records = await getHistory(
+    const recordInfos = await getMigrationRecordInfos(
       this.database,
       baseVersion,
       recordStartId
-    ).then(history =>
-      history.filter(
+    ).then(recordInfos =>
+      recordInfos.filter(
         ({ version, state }) => version !== baseVersion && state === 'applied'
       )
     )
-    for (const record of records) {
+    for (const record of recordInfos) {
       this.emit('validate:run:start', record)
       const migration = await getMigration(
         this.source,
@@ -290,8 +301,12 @@ export class SynorMigrator extends EventEmitter {
    */
   migrate = async (targetVersion: string): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
-    const history = await getHistory(this.database, baseVersion, recordStartId)
-    const currentVersion = getCurrentRecord(history).version
+    const recordInfos = await getMigrationRecordInfos(
+      this.database,
+      baseVersion,
+      recordStartId
+    )
+    const currentVersion = getCurrentRecord(recordInfos).version
     const migrations = await getMigrationsToRun(
       this.source,
       baseVersion,
@@ -316,8 +331,16 @@ export class SynorMigrator extends EventEmitter {
    */
   repair = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
-    const history = await getHistory(this.database, baseVersion, recordStartId)
-    const records = await getRecordsToRepair(this.source, baseVersion, history)
+    const recordInfos = await getMigrationRecordInfos(
+      this.database,
+      baseVersion,
+      recordStartId
+    )
+    const records = await getRecordsToRepair(
+      this.source,
+      baseVersion,
+      recordInfos
+    )
     await this.database.repair(records)
   }
 }
