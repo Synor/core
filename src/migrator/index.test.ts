@@ -279,7 +279,9 @@ describe('SynorMigrator', () => {
         .on('info', onSpy)
         .on('info:end', onSpy)
 
-      await expect(migrator.info()).resolves.toBeUndefined()
+      await expect(
+        migrator.info({ outOfOrder: false })
+      ).resolves.toBeUndefined()
 
       expect(
         jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
@@ -325,7 +327,9 @@ describe('SynorMigrator', () => {
         .on('info', onSpy)
         .on('info:end', onSpy)
 
-      await expect(migrator.info()).resolves.toBeUndefined()
+      await expect(
+        migrator.info({ outOfOrder: false })
+      ).resolves.toBeUndefined()
 
       expect(
         jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
@@ -350,7 +354,6 @@ describe('SynorMigrator', () => {
               },
               Object {
                 "migration": 42,
-                "state": "pending",
               },
             ],
           ],
@@ -516,9 +519,6 @@ describe('SynorMigrator', () => {
         .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
         .mockResolvedValue('recordInfos' as any)
       jest
-        .spyOn(getCurrentRecordModule, 'getCurrentRecord')
-        .mockReturnValue('current' as any)
-      jest
         .spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
         .mockResolvedValue(['migration'] as any)
       database.run.mockRejectedValue(new Error('run-error'))
@@ -530,13 +530,12 @@ describe('SynorMigrator', () => {
         .on('migrate:run:end', onSpy)
         .on('migrate:end', onSpy)
 
-      await expect(migrator.migrate('target' as any)).resolves.toBeUndefined()
+      await expect(
+        migrator.migrate('target' as any, { outOfOrder: false })
+      ).resolves.toBeUndefined()
 
       expect(
         jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
-      ).toHaveBeenCalled()
-      expect(
-        jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
       expect(
         jest.spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
@@ -567,9 +566,6 @@ describe('SynorMigrator', () => {
         .spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
         .mockResolvedValue('recordInfos' as any)
       jest
-        .spyOn(getCurrentRecordModule, 'getCurrentRecord')
-        .mockReturnValue('current' as any)
-      jest
         .spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
         .mockResolvedValue(['migration'] as any)
 
@@ -580,13 +576,12 @@ describe('SynorMigrator', () => {
         .on('migrate:run:end', onSpy)
         .on('migrate:end', onSpy)
 
-      await expect(migrator.migrate('target' as any)).resolves.toBeUndefined()
+      await expect(
+        migrator.migrate('target' as any, { outOfOrder: false })
+      ).resolves.toBeUndefined()
 
       expect(
         jest.spyOn(getMigrationRecordInfosModule, 'getMigrationRecordInfos')
-      ).toHaveBeenCalled()
-      expect(
-        jest.spyOn(getCurrentRecordModule, 'getCurrentRecord')
       ).toHaveBeenCalled()
       expect(
         jest.spyOn(getMigrationsToRunModule, 'getMigrationsToRun')
