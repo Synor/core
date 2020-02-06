@@ -1,5 +1,5 @@
+import { getMigrationHistoryItem } from '../__utils__.test'
 import { getCurrentRecord } from './get-current-record'
-import { getMigrationHistoryItem } from './index.utils.test'
 
 describe('migrator:getCurrentRecord', () => {
   test('works as expected', () => {

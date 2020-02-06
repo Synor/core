@@ -1,7 +1,7 @@
-type MigrationHistory = import('../index').MigrationHistory
-type MigrationInfo = import('../index').MigrationInfo
-type MigrationRecord = import('../index').MigrationRecord
-type MigrationSource = import('../index').MigrationSource
+type MigrationHistory = import('./index').MigrationHistory
+type MigrationInfo = import('./index').MigrationInfo
+type MigrationRecord = import('./index').MigrationRecord
+type MigrationSource = import('./index').MigrationSource
 
 type MigrationHistoryItem = MigrationHistory[number]
 

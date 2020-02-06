@@ -1,5 +1,5 @@
+import { getMigrationRecord } from '../__utils__.test'
 import { getHistory } from './get-history'
-import { getMigrationRecord } from './index.utils.test'
 
 const database = {
   records: jest.fn()
