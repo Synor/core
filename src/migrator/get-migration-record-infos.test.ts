@@ -1,11 +1,11 @@
 import { getMigrationRecord } from '../__utils__.test'
-import { getHistory } from './get-history'
+import { getMigrationRecordInfos } from './get-migration-record-infos'
 
 const database = {
   records: jest.fn()
 }
 
-describe('migrator:getHistory', () => {
+describe('migrator:getMigrationRecordInfos', () => {
   test('works as expected', async () => {
     database.records.mockImplementationOnce(() =>
       Promise.resolve([
@@ -18,7 +18,7 @@ describe('migrator:getHistory', () => {
     )
 
     await expect(
-      getHistory(database as any, '01', 1)
+      getMigrationRecordInfos(database as any, '01', 1)
     ).resolves.toMatchSnapshot()
   })
 })

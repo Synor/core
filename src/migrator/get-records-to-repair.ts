@@ -1,17 +1,17 @@
 import { SynorError } from '../error'
 import { getMigration } from './get-migration'
 
-type MigrationHistory = import('../migration').MigrationHistory
+type MigrationRecordInfo = import('../migration').MigrationRecordInfo
 type SourceEngine = import('../source').SourceEngine
 
-type MismatchedRecord = Pick<MigrationHistory[number], 'id' | 'hash'>
+type MismatchedRecord = Pick<MigrationRecordInfo, 'id' | 'hash'>
 
 export async function getRecordsToRepair(
   source: SourceEngine,
   baseVersion: string,
-  history: MigrationHistory
+  recordInfos: MigrationRecordInfo[]
 ): Promise<MismatchedRecord[]> {
-  const appliedRecords = history.filter(
+  const appliedRecords = recordInfos.filter(
     ({ state, dirty }) => state === 'applied' && !dirty
   )
 

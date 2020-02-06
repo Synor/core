@@ -7,11 +7,12 @@ import { getAdvisoryLockId } from './utils/get-advisory-lock-id'
 export { DatabaseEngine, DatabaseEngineFactory } from './database'
 export { isSynorError, SynorError } from './error'
 export {
-  MigrationHistory,
   MigrationInfo,
   MigrationInfoParser,
   MigrationRecord,
-  MigrationSource
+  MigrationRecordInfo,
+  MigrationSource,
+  MigrationSourceInfo
 } from './migration'
 export { SourceEngine, SourceEngineFactory } from './source'
 export { getGitUserInfo, GetUserInfo } from './user-info'

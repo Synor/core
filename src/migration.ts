@@ -22,6 +22,12 @@ export type MigrationSource = {
   body: string
 }
 
+type MigrationSourceState = 'pending'
+
+export type MigrationSourceInfo = MigrationSource & {
+  state: MigrationSourceState
+}
+
 export type MigrationRecord = {
   id: number
   version: string
@@ -34,14 +40,12 @@ export type MigrationRecord = {
   dirty: boolean
 }
 
-export type MigrationRecordState = 'applied' | 'reverted'
+type MigrationRecordState = 'applied' | 'reverted'
 
-export type MigrationHistory = Array<
-  MigrationRecord & {
-    state: MigrationRecordState
-    revertedBy: number | null
-  }
->
+export type MigrationRecordInfo = MigrationRecord & {
+  state: MigrationRecordState
+  revertedBy: number | null
+}
 
 function getMigrationInfoRegex({
   do: DO,
