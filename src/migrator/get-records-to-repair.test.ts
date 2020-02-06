@@ -1,7 +1,7 @@
 import { SynorError } from '../error'
+import { getMigrationHistoryItem, getMigrationSource } from '../__utils__.test'
 import * as getMigrationModule from './get-migration'
 import { getRecordsToRepair } from './get-records-to-repair'
-import { getMigrationHistoryItem, getMigrationSource } from './index.utils.test'
 
 jest.mock('./get-migration', () => ({
   getMigration: jest.fn()

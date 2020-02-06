@@ -1,5 +1,5 @@
 import { SynorError } from '../error'
-import { getMigrationRecord, getMigrationSource } from './index.utils.test'
+import { getMigrationRecord, getMigrationSource } from '../__utils__.test'
 import { validateMigration } from './validate-migration'
 
 describe('migrator:validateMigration', () => {

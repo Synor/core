@@ -1,6 +1,6 @@
 import { SynorError } from '../error'
+import { getMigrationInfo } from '../__utils__.test'
 import { getMigrationsToRun } from './get-migrations-to-run'
-import { getMigrationInfo } from './index.utils.test'
 
 type MigrationInfo = ReturnType<typeof getMigrationInfo>
 type MigrationSource = import('../index').MigrationSource
