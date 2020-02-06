@@ -1,17 +1,32 @@
 import { SynorError } from '../error'
+import { getCurrentRecord } from './get-current-record'
 import { getMigration } from './get-migration'
 
-type MigrationSource = import('../migration').MigrationSource
+type MigrationRecordInfo = import('../migration').MigrationRecordInfo
+type MigrationSourceInfo = import('../migration').MigrationSourceInfo
 type MigrationType = import('../migration').MigrationType
 type SourceEngine = import('../source').SourceEngine
 
-export async function getMigrationsToRun(
-  source: SourceEngine,
-  baseVersion: string,
-  fromVersion: string,
-  toVersion: string
-): Promise<MigrationSource[]> {
-  const migrations: MigrationSource[] = []
+export async function getMigrationsToRun({
+  recordInfos,
+  source,
+  baseVersion,
+  targetVersion: toVersion,
+  outOfOrder
+}: {
+  recordInfos: MigrationRecordInfo[]
+  source: SourceEngine
+  baseVersion: string
+  targetVersion: string
+  outOfOrder: boolean
+}): Promise<MigrationSourceInfo[]> {
+  const appliedVersions = recordInfos
+    .filter(({ state, type }) => state === 'applied' && type === 'do')
+    .map(({ version }) => version)
+
+  const fromVersion = getCurrentRecord(recordInfos).version
+
+  const migrations: MigrationSourceInfo[] = []
 
   let type: MigrationType
 
@@ -31,6 +46,8 @@ export async function getMigrationsToRun(
     type = 'do'
   } else if (fromVersion > toVersion) {
     type = 'undo'
+  } else if (outOfOrder) {
+    type = 'do'
   } else {
     return migrations
   }
@@ -58,9 +75,11 @@ export async function getMigrationsToRun(
   }
 
   if (type === 'do') {
-    let nextVersion = await source.next(fromVersion)
+    const startVersion = outOfOrder ? baseVersion : fromVersion
 
-    if (fromVersion === baseVersion && !nextVersion) {
+    let nextVersion = await source.next(startVersion)
+
+    if (!nextVersion && startVersion === baseVersion) {
       nextVersion = await source.first()
     }
 
@@ -72,7 +91,9 @@ export async function getMigrationsToRun(
         break
       }
 
-      migrations.push(migration)
+      if (!appliedVersions.includes(migration.version)) {
+        migrations.push({ ...migration, state: 'pending' })
+      }
 
       if (migration.version === toVersion) {
         nextVersion = null
@@ -99,7 +120,9 @@ export async function getMigrationsToRun(
         break
       }
 
-      migrations.push(migration)
+      if (appliedVersions.includes(migration.version)) {
+        migrations.push({ ...migration, state: 'pending' })
+      }
 
       currVersion = await source.prev(migration.version)
     }

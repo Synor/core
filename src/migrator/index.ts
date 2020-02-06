@@ -8,6 +8,7 @@ import { getMigrationRecordInfos } from './get-migration-record-infos'
 import { getMigrationsToRun } from './get-migrations-to-run'
 import { getRecordsToRepair } from './get-records-to-repair'
 import { validateMigration } from './validate-migration'
+import { sortMigrations } from '../utils/sort'
 
 type DatabaseEngine = import('../database').DatabaseEngine
 type MigrationRecord = import('../migration').MigrationRecord
@@ -230,7 +231,7 @@ export class SynorMigrator extends EventEmitter {
   /**
    * Retrieves detailed information about schema migrations.
    */
-  info = async (): Promise<void> => {
+  info = async ({ outOfOrder }: { outOfOrder: boolean }): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const items: Array<MigrationRecordInfo | MigrationSourceInfo> = []
     const recordInfos = await getMigrationRecordInfos(
@@ -242,19 +243,18 @@ export class SynorMigrator extends EventEmitter {
     const currentVersion = getCurrentRecord(recordInfos).version
     const targetVersion = await this.source.last()
     if (!targetVersion || currentVersion >= targetVersion) {
-      this.emit('info', items)
+      this.emit('info', sortMigrations(items))
       return
     }
-    const migrations = await getMigrationsToRun(
-      this.source,
+    const migrations = await getMigrationsToRun({
+      recordInfos,
+      source: this.source,
       baseVersion,
-      currentVersion,
-      targetVersion
-    ).then(items =>
-      items.map<MigrationSourceInfo>(item => ({ ...item, state: 'pending' }))
-    )
+      targetVersion,
+      outOfOrder
+    })
     items.push(...migrations)
-    this.emit('info', items)
+    this.emit('info', sortMigrations(items))
   }
 
   /**
@@ -299,20 +299,23 @@ export class SynorMigrator extends EventEmitter {
    *
    * @param targetVersion Target migration version
    */
-  migrate = async (targetVersion: string): Promise<void> => {
+  migrate = async (
+    targetVersion: string,
+    { outOfOrder }: { outOfOrder: boolean }
+  ): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
     const recordInfos = await getMigrationRecordInfos(
       this.database,
       baseVersion,
       recordStartId
     )
-    const currentVersion = getCurrentRecord(recordInfos).version
-    const migrations = await getMigrationsToRun(
-      this.source,
+    const migrations = await getMigrationsToRun({
+      recordInfos,
+      source: this.source,
       baseVersion,
-      currentVersion,
-      targetVersion
-    )
+      targetVersion,
+      outOfOrder
+    })
     for (const migration of migrations) {
       this.emit('migrate:run:start', migration)
       try {

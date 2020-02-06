@@ -1,8 +1,10 @@
 import { SynorError } from '../error'
-import { getMigrationInfo } from '../__utils__.test'
+import { sortVersions } from '../utils/sort'
+import { getMigrationInfo, getMigrationRecordInfo } from '../__utils__.test'
 import { getMigrationsToRun } from './get-migrations-to-run'
 
-type MigrationInfo = ReturnType<typeof getMigrationInfo>
+type MigrationInfo = import('../index').MigrationInfo
+type MigrationRecordInfo = import('../index').MigrationRecordInfo
 type MigrationSource = import('../index').MigrationSource
 type SourceEngine = import('../index').SourceEngine
 
@@ -33,15 +35,42 @@ const infoMap: Record<
   '07': {
     do: getMigrationInfo({ version: '07', type: 'do' }),
     undo: getMigrationInfo({ version: '07', type: 'undo' })
+  },
+  '08': {
+    do: getMigrationInfo({ version: '08', type: 'do' }),
+    undo: getMigrationInfo({ version: '08', type: 'undo' })
+  },
+  '09': {
+    do: getMigrationInfo({ version: '09', type: 'do' }),
+    undo: getMigrationInfo({ version: '09', type: 'undo' })
+  },
+  '10': {
+    do: getMigrationInfo({ version: '10', type: 'do' }),
+    undo: getMigrationInfo({ version: '10', type: 'undo' })
+  },
+  '11': {
+    do: getMigrationInfo({ version: '11', type: 'do' }),
+    undo: getMigrationInfo({ version: '11', type: 'undo' })
   }
 }
-const versions = Object.keys(infoMap)
+
+const versions = sortVersions(Object.keys(infoMap))
+
+const getRecordInfos = (items: string[]): MigrationRecordInfo[] => {
+  return items.map((item, index) => {
+    const [version, type] = item.split('.') as [
+      MigrationRecordInfo['version'],
+      MigrationRecordInfo['type']
+    ]
+    return getMigrationRecordInfo({ id: index + 1, version, type })
+  })
+}
 
 const formatResult = (items: MigrationSource[]): string[] => {
   return items.map(({ version, type }) => `${version}.${type}`)
 }
 
-describe('migrator:getMigrationsToRun', () => {
+const getSource = (versions: string[]): SourceEngine => {
   const source: SourceEngine = {
     open: () => Promise.resolve(),
     close: () => Promise.resolve(),
@@ -66,14 +95,32 @@ describe('migrator:getMigrationsToRun', () => {
     read: () => Promise.resolve(Buffer.from(''))
   }
 
+  return source
+}
+
+describe('migrator:getMigrationsToRun', () => {
+  const source = getSource(versions)
+
   test('works (from=to)', async () => {
-    const result = await getMigrationsToRun(source as any, '0', '01', '01')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do']),
+      source,
+      baseVersion: '0',
+      targetVersion: '01',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`Array []`)
   })
 
   test('#23 throws if (from<base)', async () => {
     await expect(
-      getMigrationsToRun(source as any, '02', '01', '03')
+      getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do']),
+        source,
+        baseVersion: '02',
+        targetVersion: '03',
+        outOfOrder: false
+      })
     ).rejects.toMatchInlineSnapshot(
       `[SynorError: fromVersion(01) is below baseVersion(02)]`
     )
@@ -81,7 +128,13 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('#23 throws if (to<base)', async () => {
     await expect(
-      getMigrationsToRun(source as any, '02', '03', '01')
+      getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do', '02.do', '03.do']),
+        source,
+        baseVersion: '02',
+        targetVersion: '01',
+        outOfOrder: false
+      })
     ).rejects.toMatchInlineSnapshot(
       `[SynorError: toVersion(01) is below baseVersion(02)]`
     )
@@ -89,7 +142,13 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('throws (from<to ; from not exists)', async () => {
     try {
-      await getMigrationsToRun(source as any, '0', '01', '05')
+      await getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '05',
+        outOfOrder: false
+      })
     } catch (error) {
       expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
@@ -104,7 +163,13 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('throws (from<to ; to not exists)', async () => {
     try {
-      await getMigrationsToRun(source as any, '0', '02', '99')
+      await getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do', '02.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '99',
+        outOfOrder: false
+      })
     } catch (error) {
       expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
@@ -118,7 +183,13 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from<to)', async () => {
-    const result = await getMigrationsToRun(source as any, '0', '02', '04')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do', '02.do']),
+      source,
+      baseVersion: '0',
+      targetVersion: '04',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "03.do",
@@ -128,7 +199,13 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from<to ; from is base)', async () => {
-    const result = await getMigrationsToRun(source as any, '01', '01', '04')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do']),
+      source,
+      baseVersion: '01',
+      targetVersion: '04',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "02.do",
@@ -139,7 +216,13 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from<to ; not exists in middle)', async () => {
-    const result = await getMigrationsToRun(source as any, '0', '02', '07')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do', '02.do']),
+      source,
+      baseVersion: '0',
+      targetVersion: '07',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "03.do",
@@ -151,7 +234,13 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('throws (from>to ; from not exists)', async () => {
     try {
-      await getMigrationsToRun(source as any, '0', '99', '02')
+      await getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do', '99.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '02',
+        outOfOrder: false
+      })
     } catch (error) {
       expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
@@ -166,7 +255,19 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('throws (from>to ; to not exists)', async () => {
     try {
-      await getMigrationsToRun(source as any, '0', '04', '01')
+      await getMigrationsToRun({
+        recordInfos: getRecordInfos([
+          '0.do',
+          '01.do',
+          '02.do',
+          '03.do',
+          '04.do'
+        ]),
+        source,
+        baseVersion: '0',
+        targetVersion: '01',
+        outOfOrder: false
+      })
     } catch (error) {
       expect(error).toBeInstanceOf(SynorError)
       expect(error.data).toMatchInlineSnapshot(`
@@ -180,7 +281,13 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from>to)', async () => {
-    const result = await getMigrationsToRun(source as any, '0', '04', '02')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do', '02.do', '03.do', '04.do']),
+      source,
+      baseVersion: '0',
+      targetVersion: '02',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "04.undo",
@@ -191,14 +298,26 @@ describe('migrator:getMigrationsToRun', () => {
 
   test('#23 throws (from>to ; from is base)', async () => {
     await expect(
-      getMigrationsToRun(source as any, '03', '03', '02')
+      getMigrationsToRun({
+        recordInfos: getRecordInfos(['0.do', '01.do', '02.do', '03.do']),
+        source,
+        baseVersion: '03',
+        targetVersion: '02',
+        outOfOrder: false
+      })
     ).rejects.toMatchInlineSnapshot(
       `[SynorError: toVersion(02) is below baseVersion(03)]`
     )
   })
 
   test('works (from>to ; to is base)', async () => {
-    const result = await getMigrationsToRun(source as any, '01', '04', '01')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do', '02.do', '03.do', '04.do']),
+      source,
+      baseVersion: '01',
+      targetVersion: '01',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "04.undo",
@@ -209,7 +328,22 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('works (from>to ; not exists in middle)', async () => {
-    const result = await getMigrationsToRun(source as any, '0', '07', '02')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos([
+        '0.do',
+        '01.do',
+        '02.do',
+        '03.do',
+        '04.do',
+        '05.do',
+        '06.do',
+        '07.do'
+      ]),
+      source,
+      baseVersion: '0',
+      targetVersion: '02',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "07.undo",
@@ -219,12 +353,71 @@ describe('migrator:getMigrationsToRun', () => {
   })
 
   test('#22 works (from<to ; from=base ; source: first<base<last)', async () => {
-    const result = await getMigrationsToRun(source as any, '03', '03', '05')
+    const result = await getMigrationsToRun({
+      recordInfos: getRecordInfos(['0.do', '01.do', '02.do', '03.do']),
+      source,
+      baseVersion: '03',
+      targetVersion: '05',
+      outOfOrder: false
+    })
     expect(formatResult(result)).toMatchInlineSnapshot(`
       Array [
         "04.do",
         "05.do",
       ]
     `)
+  })
+
+  describe('#32 support for out of order migrations', () => {
+    const source = getSource(versions.filter(version => version >= '07'))
+
+    test('works (from=to)', async () => {
+      const result = await getMigrationsToRun({
+        recordInfos: getRecordInfos(['07.do', '10.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '10',
+        outOfOrder: true
+      })
+      expect(formatResult(result)).toMatchInlineSnapshot(`
+        Array [
+          "08.do",
+          "09.do",
+        ]
+      `)
+    })
+
+    test('works (from<to)', async () => {
+      const result = await getMigrationsToRun({
+        recordInfos: getRecordInfos(['07.do', '09.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '11',
+        outOfOrder: true
+      })
+      expect(formatResult(result)).toMatchInlineSnapshot(`
+        Array [
+          "08.do",
+          "10.do",
+          "11.do",
+        ]
+      `)
+    })
+
+    test('works (from>to)', async () => {
+      const result = await getMigrationsToRun({
+        recordInfos: getRecordInfos(['07.do', '09.do', '10.do']),
+        source,
+        baseVersion: '0',
+        targetVersion: '07',
+        outOfOrder: true
+      })
+      expect(formatResult(result)).toMatchInlineSnapshot(`
+        Array [
+          "10.undo",
+          "09.undo",
+        ]
+      `)
+    })
   })
 })
