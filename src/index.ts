@@ -17,7 +17,7 @@ export {
 export { SourceEngine, SourceEngineFactory } from './source'
 export { getGitUserInfo, GetUserInfo } from './user-info'
 export { GetAdvisoryLockId } from './utils/get-advisory-lock-id'
-export { sortVersions } from './utils/sort-versions'
+export { sortVersions } from './utils/sort'
 
 type DatabaseEngineFactory = import('./database').DatabaseEngineFactory
 type GetAdvisoryLockId = import('./utils/get-advisory-lock-id').GetAdvisoryLockId
