@@ -30,12 +30,9 @@ type MigratorEventStore = {
   'current:start': []
   current: [MigrationHistory[number]]
   'current:end': []
-  'history:start': []
-  history: [MigrationHistory]
-  'history:end': []
-  'pending:start': []
-  pending: [MigrationSource[]]
-  'pending:end': []
+  'info:start': []
+  info: [Array<MigrationHistory[number] | MigrationSource>]
+  'info:end': []
   'validate:start': []
   'validate:run:start': [MigrationRecord]
   'validate:error': [SynorError<'dirty' | 'hash_mismatch'>, MigrationRecord]
@@ -105,8 +102,7 @@ export class SynorMigrator extends EventEmitter {
 
     this.drop = this.decorate('drop:start', this.drop, 'drop:end')
     this.current = this.decorate('current:start', this.current, 'current:end')
-    this.history = this.decorate('history:start', this.history, 'history:end')
-    this.pending = this.decorate('pending:start', this.pending, 'pending:end')
+    this.info = this.decorate('info:start', this.info, 'info:end')
     this.validate = this.decorate(
       'validate:start',
       this.validate,
@@ -227,28 +223,17 @@ export class SynorMigrator extends EventEmitter {
   }
 
   /**
-   * Retrieves detailed records of the migrations that have already run on database.
-   *
-   * @param recordStartId ID of the record to start from
+   * Retrieves detailed information about schema migrations.
    */
-  history = async (
-    recordStartId: number = this.config.recordStartId
-  ): Promise<void> => {
-    const { baseVersion } = this.config
-    const history = await getHistory(this.database, baseVersion, recordStartId)
-    this.emit('history', history)
-  }
-
-  /**
-   * Retrieves the pending migrations that are available at source.
-   */
-  pending = async (): Promise<void> => {
+  info = async (): Promise<void> => {
     const { baseVersion, recordStartId } = this.config
+    const items: Array<MigrationHistory[number] | MigrationSource> = []
     const history = await getHistory(this.database, baseVersion, recordStartId)
+    items.push(...history)
     const currentVersion = getCurrentRecord(history).version
     const targetVersion = await this.source.last()
     if (!targetVersion || currentVersion >= targetVersion) {
-      this.emit('pending', [])
+      this.emit('info', items)
       return
     }
     const migrations = await getMigrationsToRun(
@@ -257,7 +242,8 @@ export class SynorMigrator extends EventEmitter {
       currentVersion,
       targetVersion
     )
-    this.emit('pending', migrations)
+    items.push(...migrations)
+    this.emit('info', items)
   }
 
   /**
