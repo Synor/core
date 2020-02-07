@@ -10,6 +10,7 @@ export type MigrationInfo = {
   type: MigrationType
   title: string
   filename: string
+  extension: string
 }
 
 export type MigrationInfoParser = (migrationFilename: string) => MigrationInfo
@@ -107,13 +108,14 @@ export const getMigrationInfoParser = (
       )
     }
 
-    const [filename, version, type, title] = infoMatches
+    const [filename, version, type, title, extension] = infoMatches
 
     return {
       version,
       type: typeMap[type],
       title,
-      filename
+      filename,
+      extension
     }
   }
 }

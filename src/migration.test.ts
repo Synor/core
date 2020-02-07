@@ -5,7 +5,13 @@ describe('SynorMigration', () => {
   test('returns data', () => {
     expect(
       SynorMigration(
-        { version: '0', type: 'do', title: 'Test', filename: '0.do.Test.sql' },
+        {
+          version: '0',
+          type: 'do',
+          title: 'Test',
+          filename: '0.do.Test.sql',
+          extension: 'sql'
+        },
         Buffer.from('SELECT 1;')
       )
     ).toMatchSnapshot()
@@ -30,6 +36,7 @@ describe('SynorMigration', () => {
     test('returned function works (for valid filename)', () => {
       expect(migrationInfoParser('001.do--Test.sql')).toMatchInlineSnapshot(`
         Object {
+          "extension": "sql",
           "filename": "001.do--Test.sql",
           "title": "Test",
           "type": "do",
@@ -39,6 +46,7 @@ describe('SynorMigration', () => {
 
       expect(migrationInfoParser('001.do--Test.js')).toMatchInlineSnapshot(`
         Object {
+          "extension": "js",
           "filename": "001.do--Test.js",
           "title": "Test",
           "type": "do",

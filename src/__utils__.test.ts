@@ -62,7 +62,8 @@ const dummyMigrationInfo: MigrationInfo = {
   version: '0',
   type: 'do',
   title: '',
-  filename: ''
+  filename: '',
+  extension: ''
 }
 
 export const getMigrationInfo = (
