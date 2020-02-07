@@ -4,6 +4,10 @@
 
 - ...
 
+## [0.8.1] - 2020-02-07
+
+- Fix `Migrator.info`
+
 ## [0.8.0] - 2020-02-07
 
 - Change types: remove `MigrationHistory`, add `MigrationRecordInfo` & `MigrationSourceInfo` [#32](https://github.com/Synor/core/issues/32)
@@ -54,7 +58,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.8.0...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.8.1...HEAD
+[0.8.1]: https://github.com/Synor/core/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/Synor/core/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/Synor/core/compare/0.6.1...0.7.0
 [0.6.1]: https://github.com/Synor/core/compare/0.6.0...0.6.1
