@@ -1,11 +1,15 @@
+import { sortMigrations } from '../utils/sort'
+
 type MigrationRecordInfo = import('../migration').MigrationRecordInfo
 
 export function getCurrentRecord(
   recordInfos: MigrationRecordInfo[]
 ): MigrationRecordInfo {
-  const appliedMigrations = recordInfos
-    .filter(({ state, type }) => state === 'applied' && type === 'do')
-    .sort((a, b) => a.id - b.id)
+  const appliedMigrations = sortMigrations(
+    recordInfos.filter(
+      ({ state, type }) => state === 'applied' && type === 'do'
+    )
+  )
 
   const currentRecordInfo = appliedMigrations[appliedMigrations.length - 1]
 
