@@ -2,13 +2,13 @@ import { EventEmitter } from 'events'
 import { SynorDatabase } from '../database'
 import { SynorError, toSynorError } from '../error'
 import { SynorSource } from '../source'
+import { sortMigrations } from '../utils/sort'
 import { getCurrentRecord } from './get-current-record'
 import { getMigration } from './get-migration'
 import { getMigrationRecordInfos } from './get-migration-record-infos'
 import { getMigrationsToRun } from './get-migrations-to-run'
 import { getRecordsToRepair } from './get-records-to-repair'
 import { validateMigration } from './validate-migration'
-import { sortMigrations } from '../utils/sort'
 
 type DatabaseEngine = import('../database').DatabaseEngine
 type MigrationRecord = import('../migration').MigrationRecord
@@ -242,7 +242,7 @@ export class SynorMigrator extends EventEmitter {
     items.push(...recordInfos)
     const currentVersion = getCurrentRecord(recordInfos).version
     const targetVersion = await this.source.last()
-    if (!targetVersion || currentVersion >= targetVersion) {
+    if (!targetVersion || (!outOfOrder && currentVersion >= targetVersion)) {
       this.emit('info', sortMigrations(items))
       return
     }
