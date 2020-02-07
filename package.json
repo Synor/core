@@ -1,7 +1,7 @@
 {
   "name": "@synor/core",
   "version": "0.8.2",
-  "description": "Synor - Database Migration Library - Core",
+  "description": "Synor - Database Schema Migration Library - Core",
   "keywords": [
     "synor",
     "database",

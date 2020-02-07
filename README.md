@@ -6,7 +6,7 @@
 
 # Synor Core
 
-Synor - Database Migration Library - Core
+Synor - Database Schema Migration Library - Core
 
 ## Installation
 
