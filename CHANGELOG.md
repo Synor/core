@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Change types: remove `MigrationHistory`, add `MigrationRecordInfo` & `MigrationSourceInfo` [#32](https://github.com/Synor/core/issues/32)
+- Combine `Migrator.history` and `Migrator.pending` into `Migrator.info` [#32](https://github.com/Synor/core/issues/32)
+- Add support for Out of Order migration run [#32](https://github.com/Synor/core/issues/32)
 - ...
 
 ## [0.7.0] - 2020-01-14
