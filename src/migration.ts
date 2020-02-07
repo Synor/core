@@ -14,6 +14,9 @@ export type MigrationInfo = {
 
 export type MigrationInfoParser = (migrationFilename: string) => MigrationInfo
 
+/**
+ * MigrationSource is where the schema migration is stored
+ */
 export type MigrationSource = {
   version: string
   type: MigrationType
@@ -22,12 +25,23 @@ export type MigrationSource = {
   body: string
 }
 
+/**
+ * The state of MigrationSource
+ *
+ * `pending` -> still not applied to the database
+ */
 type MigrationSourceState = 'pending'
 
+/**
+ * MigrationSource with additional meta information
+ */
 export type MigrationSourceInfo = MigrationSource & {
   state: MigrationSourceState
 }
 
+/**
+ * MigrationRecord is a schema migration that has already run against database
+ */
 export type MigrationRecord = {
   id: number
   version: string
@@ -40,8 +54,18 @@ export type MigrationRecord = {
   dirty: boolean
 }
 
+/**
+ * The state of MigrationRecord
+ *
+ * `applied`  -> currently applied on the database
+ *
+ * `reverted` -> was in `applied` state previously and then reverted with an `undo` migration
+ */
 type MigrationRecordState = 'applied' | 'reverted'
 
+/**
+ * MigrationRecord with additional meta information
+ */
 export type MigrationRecordInfo = MigrationRecord & {
   state: MigrationRecordState
   revertedBy: number | null
