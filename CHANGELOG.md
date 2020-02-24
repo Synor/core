@@ -4,6 +4,10 @@
 
 - ...
 
+## [0.9.0] - 2020-02-25
+
+- Resolve: [#34](https://github.com/Synor/core/issues/34)
+
 ## [0.8.2] - 2020-02-07
 
 - Fix `getCurrentRecord` [#32](https://github.com/Synor/core/issues/32)

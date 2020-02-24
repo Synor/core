@@ -1,11 +1,13 @@
 {
   "name": "@synor/core",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Synor - Database Schema Migration Library - Core",
   "keywords": [
     "synor",
     "database",
-    "migration"
+    "database-schema-migration",
+    "migration",
+    "schema-migration"
   ],
   "homepage": "https://github.com/Synor/core#readme",
   "bugs": "https://github.com/Synor/core/issues",
