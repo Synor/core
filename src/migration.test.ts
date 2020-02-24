@@ -2,7 +2,7 @@ import { SynorError } from './error'
 import { getMigrationInfoParser, SynorMigration } from './migration'
 
 describe('SynorMigration', () => {
-  test('returns data', () => {
+  test('returns data (with body)', () => {
     expect(
       SynorMigration(
         {
@@ -12,7 +12,22 @@ describe('SynorMigration', () => {
           filename: '0.do.Test.sql',
           extension: 'sql'
         },
-        Buffer.from('SELECT 1;')
+        { body: 'SELECT 1;' }
+      )
+    ).toMatchSnapshot()
+  })
+
+  test('#34 returns data (with run)', () => {
+    expect(
+      SynorMigration(
+        {
+          version: '0',
+          type: 'do',
+          title: 'Test',
+          filename: '0.do.Test.sql',
+          extension: 'sql'
+        },
+        { run: () => Promise.resolve() }
       )
     ).toMatchSnapshot()
   })

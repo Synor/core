@@ -1,6 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SynorMigration returns data 1`] = `
+exports[`SynorMigration #34 returns data (with run) 1`] = `
+Object {
+  "hash": "f2a389a98811d61a0bb4a171dd49b43db69a2981edfd6f727d802dd795bd3685",
+  "run": [Function],
+  "title": "Test",
+  "type": "do",
+  "version": "0",
+}
+`;
+
+exports[`SynorMigration returns data (with body) 1`] = `
 Object {
   "body": "SELECT 1;",
   "hash": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",

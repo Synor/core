@@ -92,7 +92,7 @@ const getSource = (versions: string[]): SourceEngine => {
       const m = infoMap[version]
       return Promise.resolve(m ? m[type] || null : null)
     },
-    read: () => Promise.resolve(Buffer.from(''))
+    read: () => Promise.resolve({ body: '' })
   }
 
   return source

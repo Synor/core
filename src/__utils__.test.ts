@@ -53,10 +53,18 @@ const dummyMigrationSource: MigrationSource = {
 
 export const getMigrationSource = (
   source: Partial<MigrationSource>
-): MigrationSource => ({
-  ...dummyMigrationSource,
-  ...source
-})
+): MigrationSource => {
+  const migrationSource = {
+    ...dummyMigrationSource,
+    ...source
+  }
+
+  if ('run' in migrationSource) {
+    delete migrationSource.body
+  }
+
+  return migrationSource as MigrationSource
+}
 
 const dummyMigrationInfo: MigrationInfo = {
   version: '0',
