@@ -19,7 +19,7 @@ describe('migrator:getMigration', () => {
     const info = { version: '01', type: 'do', title: '', filename: '' }
 
     source.get.mockImplementationOnce(() => Promise.resolve(info))
-    source.read.mockImplementationOnce(() => Promise.resolve(Buffer.from('')))
+    source.read.mockImplementationOnce(() => Promise.resolve({ body: '' }))
 
     await expect(
       getMigration(source as any, '01', 'do')

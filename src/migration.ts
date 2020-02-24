@@ -15,6 +15,23 @@ export type MigrationInfo = {
 
 export type MigrationInfoParser = (migrationFilename: string) => MigrationInfo
 
+export type MigrationSourceContent =
+  | {
+      /**
+       * Describes the migration using some kind of [Data Definition Language](https://en.wikipedia.org/wiki/Data_definition_language)
+       */
+      body: string
+      run?: never
+    }
+  | {
+      body?: never
+      /**
+       * This should only exist if `body` is omitted.
+       * The function signature depends on the `DatabaseEngine` implementation.
+       */
+      run: (...params: any[]) => Promise<any>
+    }
+
 /**
  * MigrationSource is where the schema migration is stored
  */
@@ -23,8 +40,7 @@ export type MigrationSource = {
   type: MigrationType
   title: string
   hash: string
-  body: string
-}
+} & MigrationSourceContent
 
 /**
  * The state of MigrationSource
@@ -122,17 +138,20 @@ export const getMigrationInfoParser = (
 
 export function SynorMigration(
   { version, type, title }: MigrationInfo,
-  content: Buffer
+  sourceContent: MigrationSourceContent
 ): MigrationSource {
   const migration: MigrationSource = {
     version,
     type,
     title,
+    ...sourceContent,
     get hash() {
+      if (typeof this.body === 'undefined') {
+        // Non-null assertion is required because of TypeScript quirks
+        return getHash(this.run!.toString())
+      }
+
       return getHash(this.body)
-    },
-    get body() {
-      return content.toString('utf8')
     }
   }
 

@@ -8,7 +8,7 @@ describe('migrator:validateMigration', () => {
 
   beforeEach(() => {
     record = getMigrationRecord({})
-    source = getMigrationSource({})
+    source = getMigrationSource({ run: () => Promise.resolve('') })
   })
 
   test('throws if dirty', () => {

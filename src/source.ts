@@ -1,6 +1,7 @@
 import { SynorError } from './error'
 
 type MigrationInfo = import('./migration').MigrationInfo
+type MigrationSourceContent = import('./migration').MigrationSourceContent
 type MigrationType = import('./migration').MigrationType
 type SynorConfig = import('.').SynorConfig
 
@@ -55,9 +56,9 @@ export interface SourceEngine {
    *
    * @param migrationInfo migration information
    *
-   * @returns migration content buffer
+   * @returns migration source content
    */
-  read(migrationInfo: MigrationInfo): Promise<Buffer>
+  read(migrationInfo: MigrationInfo): Promise<MigrationSourceContent>
 }
 
 export type SourceEngineFactory = (

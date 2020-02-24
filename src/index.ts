@@ -12,6 +12,7 @@ export {
   MigrationRecord,
   MigrationRecordInfo,
   MigrationSource,
+  MigrationSourceContent,
   MigrationSourceInfo
 } from './migration'
 export { SourceEngine, SourceEngineFactory } from './source'
