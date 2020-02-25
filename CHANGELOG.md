@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Fix hash generation in `SynorMigration` function
 - ...
 
 ## [0.9.0] - 2020-02-25

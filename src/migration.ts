@@ -146,12 +146,12 @@ export function SynorMigration(
     title,
     ...sourceContent,
     get hash() {
-      if (typeof this.body === 'undefined') {
+      if (typeof sourceContent.body === 'undefined') {
         // Non-null assertion is required because of TypeScript quirks
-        return getHash(this.run!.toString())
+        return getHash(sourceContent.run!.toString())
       }
 
-      return getHash(this.body)
+      return getHash(sourceContent.body)
     }
   }
 
