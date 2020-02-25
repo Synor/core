@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
-- Fix hash generation in `SynorMigration` function
 - ...
+
+## [0.9.1] - 2020-02-25
+
+- Fix hash generation in `SynorMigration` function
 
 ## [0.9.0] - 2020-02-25
 
@@ -67,7 +70,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.9.0...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/Synor/core/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/Synor/core/compare/0.8.2...0.9.0
 [0.8.2]: https://github.com/Synor/core/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/Synor/core/compare/0.8.0...0.8.1
