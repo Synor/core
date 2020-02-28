@@ -4,7 +4,7 @@ describe('utils:getAdvisoryLockId', () => {
   test('is deterministic', () => {
     expect(getAdvisoryLockId('synor')).toMatchInlineSnapshot(`
       Array [
-        "2266284534",
+        "-2028682762",
         "1883243334",
       ]
     `)

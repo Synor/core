@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Change `utils:crc32` to return signed integer [#36](https://github.com/Synor/core/issues/36)
 - ...
 
 ## [0.9.1] - 2020-02-25

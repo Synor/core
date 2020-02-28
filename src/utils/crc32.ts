@@ -21,6 +21,9 @@ function generateCRC32Table(): number[] {
 
 const crcTable = generateCRC32Table()
 
+/**
+ * Generates 32bit signed integer
+ */
 export function crc32(str: string): number {
   let crc = 0 ^ -1
 
@@ -28,5 +31,5 @@ export function crc32(str: string): number {
     crc = (crc >>> 8) ^ crcTable[(crc ^ str.charCodeAt(i)) & 0xff]
   }
 
-  return (crc ^ -1) >>> 0
+  return (crc ^ -1) >> 0
 }
