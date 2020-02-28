@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
-- Change `utils:crc32` to return signed integer [#36](https://github.com/Synor/core/issues/36)
 - ...
+
+## [0.9.2] - 2020-02-28
+
+- Change `utils:crc32` to return signed integer [#36](https://github.com/Synor/core/issues/36)
 
 ## [0.9.1] - 2020-02-25
 
@@ -71,7 +74,8 @@
 
 - Initial release
 
-[unreleased]: https://github.com/Synor/core/compare/0.9.1...HEAD
+[unreleased]: https://github.com/Synor/core/compare/0.9.2...HEAD
+[0.9.1]: https://github.com/Synor/core/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/Synor/core/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/Synor/core/compare/0.8.2...0.9.0
 [0.8.2]: https://github.com/Synor/core/compare/0.8.1...0.8.2
