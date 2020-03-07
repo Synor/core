@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Fix unlock handling
 - ...
 
 ## [0.9.2] - 2020-02-28

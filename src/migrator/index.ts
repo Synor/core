@@ -161,7 +161,7 @@ export class SynorMigrator extends EventEmitter {
     } catch (error) {
       this.emitOrThrow('error', error)
     } finally {
-      if (!withoutLock) {
+      if (!withoutLock && this.locked) {
         await this.unlock()
       }
     }
