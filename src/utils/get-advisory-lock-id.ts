@@ -1,5 +1,9 @@
 import { crc32 } from './crc32'
 
+/**
+ * Generates two 32bit numbers deterministically for the input strings
+ * and returns them as strings.
+ */
 export type GetAdvisoryLockId = (
   databaseName: string,
   ...additionalNames: string[]

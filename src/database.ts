@@ -4,6 +4,9 @@ type MigrationRecord = import('./migration').MigrationRecord
 type MigrationSource = import('./migration').MigrationSource
 type SynorConfig = import('.').SynorConfig
 
+/**
+ * DatabaseEngine is the interface between Synor's core and the target database where the migration will run.
+ */
 export interface DatabaseEngine {
   /**
    * Opens connection to database
@@ -45,6 +48,9 @@ export interface DatabaseEngine {
   records(startId?: number): Promise<MigrationRecord[]>
 }
 
+/**
+ * DatabaseEngineFactory returns the DatabaseEngine.
+ */
 export type DatabaseEngineFactory = (
   uri: SynorConfig['databaseUri'],
   helpers: Pick<

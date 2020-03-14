@@ -5,6 +5,9 @@ type MigrationSourceContent = import('./migration').MigrationSourceContent
 type MigrationType = import('./migration').MigrationType
 type SynorConfig = import('.').SynorConfig
 
+/**
+ * SourceEngine is the interface between Synor's core and the target source where the migration definitions are stored.
+ */
 export interface SourceEngine {
   /**
    * Opens connection to source
@@ -61,6 +64,9 @@ export interface SourceEngine {
   read(migrationInfo: MigrationInfo): Promise<MigrationSourceContent>
 }
 
+/**
+ * SourceEngineFactory returns the SourceEngine.
+ */
 export type SourceEngineFactory = (
   uri: SynorConfig['sourceUri'],
   helpers: Pick<SynorConfig, 'migrationInfoParser'>

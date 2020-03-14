@@ -5,6 +5,9 @@ type SynorConfig = import('.').SynorConfig
 
 export type MigrationType = 'do' | 'undo'
 
+/**
+ * Basic information about the migration
+ */
 export type MigrationInfo = {
   version: string
   type: MigrationType
@@ -13,6 +16,9 @@ export type MigrationInfo = {
   extension: string
 }
 
+/**
+ * Parses the name of the migration definition file to extract `MigrationInfo`
+ */
 export type MigrationInfoParser = (migrationFilename: string) => MigrationInfo
 
 export type MigrationSourceContent =
