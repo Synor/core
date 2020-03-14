@@ -5,6 +5,11 @@ const config: Config = {
   output: {
     dir: 'lib',
     format: ['cjs', 'esm']
+  },
+  plugins: {
+    typescript2: {
+      objectHashIgnoreUnknownHack: false
+    }
   }
 }
 
